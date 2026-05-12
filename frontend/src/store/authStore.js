@@ -1,0 +1,32 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import api from '../lib/api.js';
+
+export const useAuthStore = create(
+  persist(
+    (set) => ({
+      token: null,
+      user: null,
+
+      login: async (email, password) => {
+        const { data } = await api.post('/auth/login', { email, password });
+        set({ token: data.token, user: data.user });
+        return data;
+      },
+
+      register: async (username, email, password) => {
+        const { data } = await api.post('/auth/register', { username, email, password });
+        set({ token: data.token, user: data.user });
+        return data;
+      },
+
+      updateUser: (updates) => set((s) => ({ user: { ...s.user, ...updates } })),
+
+      logout: () => set({ token: null, user: null }),
+    }),
+    {
+      name: 'auth-storage',
+      partialize: (s) => ({ token: s.token, user: s.user }),
+    }
+  )
+);
