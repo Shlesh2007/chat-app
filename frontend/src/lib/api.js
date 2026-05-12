@@ -1,23 +1,22 @@
 import axios from 'axios';
 
+// In production (Vercel), use the backend URL from env.
+// In development, use Vite proxy (/api → localhost:3001).
+const BASE_URL = import.meta.env.VITE_BACKEND_URL
+  ? `${import.meta.env.VITE_BACKEND_URL}/api`
+  : '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: BASE_URL,
   timeout: 30000,
 });
 
-// Attach token from storage on every request
+// Attach token on every request
 api.interceptors.request.use((config) => {
-  const stored = localStorage.getItem('auth-storage');
-  if (stored) {
-    try {
-      const { state } = JSON.parse(stored);
-      if (state?.token) {
-        config.headers.Authorization = `Bearer ${state.token}`;
-      }
-    } catch {
-      // ignore
-    }
-  }
+  try {
+    const { state } = JSON.parse(localStorage.getItem('auth-storage') || '{}');
+    if (state?.token) config.headers.Authorization = `Bearer ${state.token}`;
+  } catch {}
   return config;
 });
 

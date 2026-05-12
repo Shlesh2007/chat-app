@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import api from '../lib/api.js';
+import { backendUrl } from '../lib/utils.js';
 
 function getToken() {
   try {
@@ -74,7 +75,7 @@ export const useChatStore = create((set, get) => ({
     }));
 
     try {
-      const response = await fetch(`/api/chat/${activeConversationId}/message`, {
+      const response = await fetch(backendUrl(`/api/chat/${activeConversationId}/message`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -22,7 +22,10 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-app.use(cors({ origin: '*', credentials: true }));
+app.use(cors({
+  origin: (origin, cb) => cb(null, true), // allow all in production (Vercel + local)
+  credentials: true,
+}));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 300 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
