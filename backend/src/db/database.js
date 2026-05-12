@@ -10,6 +10,10 @@ export function getDB() {
 export async function initDB() {
   if (_db) return;
 
+  if (!process.env.TURSO_URL || !process.env.TURSO_TOKEN) {
+    throw new Error('Missing TURSO_URL or TURSO_TOKEN environment variables');
+  }
+
   _db = createClient({
     url: process.env.TURSO_URL,
     authToken: process.env.TURSO_TOKEN,
