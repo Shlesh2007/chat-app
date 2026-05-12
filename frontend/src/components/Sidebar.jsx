@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChatStore } from '../store/chatStore.js';
 import { useAuthStore } from '../store/authStore.js';
 import {
   Plus, MessageSquare, Trash2, Edit2, Check, X,
-  LogOut, Bot, Upload, ChevronLeft, ChevronRight, UserCircle
+  LogOut, Bot, Upload, ChevronLeft, Menu, UserCircle
 } from 'lucide-react';
 import UploadModal from './UploadModal.jsx';
 import { assetUrl } from '../lib/utils.js';
@@ -13,14 +13,21 @@ export default function Sidebar({ onNewChat }) {
   const navigate = useNavigate();
   const { conversations, activeConversationId, loadConversation, deleteConversation, renameConversation } = useChatStore();
   const { user, logout } = useAuthStore();
-  const [collapsed, setCollapsed] = useState(false);
+  const [open, setOpen] = useState(false); // mobile drawer open
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [showUpload, setShowUpload] = useState(false);
 
+  // Close sidebar on mobile when navigating
   const handleSelect = (id) => {
     loadConversation(id);
     navigate(`/chat/${id}`);
+    setOpen(false);
+  };
+
+  const handleNewChat = async () => {
+    await onNewChat();
+    setOpen(false);
   };
 
   const handleDelete = async (e, id) => {
@@ -39,54 +46,30 @@ export default function Sidebar({ onNewChat }) {
 
   const saveEdit = async (e) => {
     e.stopPropagation();
-    if (editTitle.trim()) {
-      await renameConversation(editingId, editTitle.trim());
-    }
+    if (editTitle.trim()) await renameConversation(editingId, editTitle.trim());
     setEditingId(null);
   };
 
-  const cancelEdit = (e) => {
-    e.stopPropagation();
-    setEditingId(null);
-  };
+  const cancelEdit = (e) => { e.stopPropagation(); setEditingId(null); };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  const handleLogout = () => { logout(); navigate('/login'); };
 
-  if (collapsed) {
-    return (
-      <div className="w-14 bg-gray-800 border-r border-gray-700 flex flex-col items-center py-4 gap-3">
-        <button onClick={() => setCollapsed(false)} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-700">
-          <ChevronRight size={20} />
-        </button>
-        <button onClick={onNewChat} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-700">
-          <Plus size={20} />
-        </button>
-        <button onClick={() => setShowUpload(true)} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-700">
-          <Upload size={20} />
-        </button>
-        <div className="flex-1" />
-        <button onClick={() => navigate('/profile')} className="hover:opacity-80 transition mb-1">
-          {user?.avatar ? (
-            <img src={assetUrl(user.avatar)} alt="avatar" className="w-8 h-8 rounded-full object-cover" />
-          ) : (
-            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-sm font-bold text-white">
-              {user?.username?.[0]?.toUpperCase() || 'U'}
-            </div>
-          )}
-        </button>
-        <button onClick={handleLogout} className="text-gray-400 hover:text-red-400 p-2 rounded-lg hover:bg-gray-700">
-          <LogOut size={20} />
-        </button>
-        {showUpload && <UploadModal onClose={() => setShowUpload(false)} />}
-      </div>
-    );
-  }
+  // Close on outside tap (mobile)
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (!e.target.closest('#sidebar')) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
+  }, [open]);
 
-  return (
-    <aside className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col shrink-0">
+  const sidebarContent = (
+    <div id="sidebar" className="w-72 bg-gray-800 border-r border-gray-700 flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b border-gray-700 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -95,7 +78,7 @@ export default function Sidebar({ onNewChat }) {
           </div>
           <span className="font-semibold text-white">Chat-App</span>
         </div>
-        <button onClick={() => setCollapsed(true)} className="text-gray-400 hover:text-white p-1 rounded">
+        <button onClick={() => setOpen(false)} className="md:hidden text-gray-400 hover:text-white p-1 rounded">
           <ChevronLeft size={18} />
         </button>
       </div>
@@ -103,11 +86,10 @@ export default function Sidebar({ onNewChat }) {
       {/* Actions */}
       <div className="p-3 flex gap-2">
         <button
-          onClick={onNewChat}
+          onClick={handleNewChat}
           className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white text-sm font-medium py-2 px-3 rounded-lg transition"
         >
-          <Plus size={16} />
-          New Chat
+          <Plus size={16} /> New Chat
         </button>
         <button
           onClick={() => setShowUpload(true)}
@@ -129,13 +111,10 @@ export default function Sidebar({ onNewChat }) {
                 key={conv.id}
                 onClick={() => handleSelect(conv.id)}
                 className={`group flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition ${
-                  activeConversationId === conv.id
-                    ? 'bg-gray-700 text-white'
-                    : 'text-gray-300 hover:bg-gray-700/60 hover:text-white'
+                  activeConversationId === conv.id ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700/60 hover:text-white'
                 }`}
               >
                 <MessageSquare size={15} className="shrink-0 text-gray-400" />
-
                 {editingId === conv.id ? (
                   <div className="flex-1 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                     <input
@@ -145,23 +124,17 @@ export default function Sidebar({ onNewChat }) {
                       className="flex-1 bg-gray-600 text-white text-sm px-2 py-0.5 rounded outline-none"
                       autoFocus
                     />
-                    <button onClick={saveEdit} className="text-green-400 hover:text-green-300"><Check size={14} /></button>
-                    <button onClick={cancelEdit} className="text-gray-400 hover:text-gray-200"><X size={14} /></button>
+                    <button onClick={saveEdit} className="text-green-400"><Check size={14} /></button>
+                    <button onClick={cancelEdit} className="text-gray-400"><X size={14} /></button>
                   </div>
                 ) : (
                   <>
                     <span className="flex-1 text-sm truncate">{conv.title}</span>
                     <div className="hidden group-hover:flex items-center gap-1">
-                      <button
-                        onClick={(e) => startEdit(e, conv)}
-                        className="text-gray-400 hover:text-white p-0.5 rounded"
-                      >
+                      <button onClick={(e) => startEdit(e, conv)} className="text-gray-400 hover:text-white p-0.5 rounded">
                         <Edit2 size={13} />
                       </button>
-                      <button
-                        onClick={(e) => handleDelete(e, conv.id)}
-                        className="text-gray-400 hover:text-red-400 p-0.5 rounded"
-                      >
+                      <button onClick={(e) => handleDelete(e, conv.id)} className="text-gray-400 hover:text-red-400 p-0.5 rounded">
                         <Trash2 size={13} />
                       </button>
                     </div>
@@ -175,11 +148,7 @@ export default function Sidebar({ onNewChat }) {
 
       {/* User footer */}
       <div className="p-3 border-t border-gray-700 flex items-center gap-3">
-        <button
-          onClick={() => navigate('/profile')}
-          className="shrink-0 hover:opacity-80 transition"
-          title="View profile"
-        >
+        <button onClick={() => { navigate('/profile'); setOpen(false); }} className="shrink-0 hover:opacity-80 transition">
           {user?.avatar ? (
             <img src={assetUrl(user.avatar)} alt="avatar" className="w-8 h-8 rounded-full object-cover border border-gray-600" />
           ) : (
@@ -192,15 +161,42 @@ export default function Sidebar({ onNewChat }) {
           <p className="text-sm font-medium text-white truncate">{user?.username}</p>
           <p className="text-xs text-gray-400 truncate">{user?.email}</p>
         </div>
-        <button onClick={() => navigate('/profile')} className="text-gray-400 hover:text-white p-1 rounded transition" title="Profile">
+        <button onClick={() => { navigate('/profile'); setOpen(false); }} className="text-gray-400 hover:text-white p-1 rounded transition">
           <UserCircle size={16} />
         </button>
-        <button onClick={handleLogout} className="text-gray-400 hover:text-red-400 p-1 rounded transition" title="Logout">
+        <button onClick={handleLogout} className="text-gray-400 hover:text-red-400 p-1 rounded transition">
           <LogOut size={16} />
         </button>
       </div>
 
       {showUpload && <UploadModal onClose={() => setShowUpload(false)} />}
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar — always visible */}
+      <aside className="hidden md:flex shrink-0">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile: hamburger button */}
+      <button
+        onClick={() => setOpen(true)}
+        className="md:hidden fixed top-3 left-3 z-40 w-9 h-9 bg-gray-800 border border-gray-700 rounded-lg flex items-center justify-center text-gray-300 hover:text-white shadow-lg"
+      >
+        <Menu size={18} />
+      </button>
+
+      {/* Mobile: overlay + drawer */}
+      {open && (
+        <>
+          <div className="md:hidden fixed inset-0 bg-black/60 z-40" onClick={() => setOpen(false)} />
+          <div className="md:hidden fixed inset-y-0 left-0 z-50 flex animate-slideRight">
+            {sidebarContent}
+          </div>
+        </>
+      )}
+    </>
   );
 }

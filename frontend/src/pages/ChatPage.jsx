@@ -39,7 +39,9 @@ export default function ChatPage() {
     <div className="flex h-screen bg-gray-900 overflow-hidden">
       <Sidebar onNewChat={handleNewChat} />
 
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Mobile top bar spacer so content doesn't hide behind hamburger */}
+        <div className="md:hidden h-14 shrink-0" />
         {activeConversationId ? (
           <>
             <ChatWindow />

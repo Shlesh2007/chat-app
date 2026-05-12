@@ -97,7 +97,14 @@
   animation: blink 1s step-end infinite;
 }
 
-/* Entrance animations */
+@keyframes slideRight {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slideRight {
+  animation: slideRight 0.25s ease;
+}
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
