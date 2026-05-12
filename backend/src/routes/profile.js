@@ -13,89 +13,64 @@ const __dirname = path.dirname(__filename);
 const AVATAR_DIR = path.join(__dirname, '../../uploads/avatars');
 fs.mkdirSync(AVATAR_DIR, { recursive: true });
 
-const avatarStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, AVATAR_DIR),
-  filename: (req, file, cb) => cb(null, `${req.user.id}${path.extname(file.originalname)}`),
-});
-
 const avatarUpload = multer({
-  storage: avatarStorage,
-  fileFilter: (req, file, cb) => {
-    const allowed = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
-    if (allowed.includes(path.extname(file.originalname).toLowerCase())) cb(null, true);
-    else cb(new Error('Only image files allowed'));
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, AVATAR_DIR),
+    filename: (req, _file, cb) => cb(null, `${req.user.id}.jpg`),
+  }),
+  fileFilter: (_req, file, cb) => {
+    const ok = ['.jpg','.jpeg','.png','.gif','.webp'].includes(path.extname(file.originalname).toLowerCase());
+    cb(ok ? null : new Error('Images only'), ok);
   },
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
 const router = express.Router();
 
-// GET /api/profile — get current user profile
 router.get('/', authenticate, asyncHandler(async (req, res) => {
   const db = getDB();
-  const user = db.prepare(`
-    SELECT id, username, email, avatar, auto_delete, created_at FROM users WHERE id = ?
-  `).get(req.user.id);
-  res.json({ user });
+  const result = await db.execute({ sql: 'SELECT id,username,email,avatar,auto_delete,created_at FROM users WHERE id=?', args: [req.user.id] });
+  res.json({ user: result.rows[0] });
 }));
 
-// POST /api/profile/avatar — upload profile photo
 router.post('/avatar', authenticate, avatarUpload.single('avatar'), asyncHandler(async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
-
   const avatarUrl = `/uploads/avatars/${req.file.filename}`;
   const db = getDB();
-  db.prepare(`UPDATE users SET avatar = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
-    .run(avatarUrl, req.user.id);
-
+  await db.execute({ sql: 'UPDATE users SET avatar=?,updated_at=CURRENT_TIMESTAMP WHERE id=?', args: [avatarUrl, req.user.id] });
   res.json({ avatar: avatarUrl });
 }));
 
-// DELETE /api/profile/avatar — remove profile photo
 router.delete('/avatar', authenticate, asyncHandler(async (req, res) => {
   const db = getDB();
-  const user = db.prepare(`SELECT avatar FROM users WHERE id = ?`).get(req.user.id);
-
-  if (user?.avatar) {
-    const filePath = path.join(__dirname, '../..', user.avatar);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  const result = await db.execute({ sql: 'SELECT avatar FROM users WHERE id=?', args: [req.user.id] });
+  const avatar = result.rows[0]?.avatar;
+  if (avatar) {
+    const fp = path.join(__dirname, '../..', avatar);
+    if (fs.existsSync(fp)) fs.unlinkSync(fp);
   }
-
-  db.prepare(`UPDATE users SET avatar = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
-    .run(req.user.id);
-
+  await db.execute({ sql: 'UPDATE users SET avatar=NULL,updated_at=CURRENT_TIMESTAMP WHERE id=?', args: [req.user.id] });
   res.json({ success: true });
 }));
 
-// PATCH /api/profile — update username or auto_delete setting
 router.patch('/', authenticate, asyncHandler(async (req, res) => {
   const { username, auto_delete } = req.body;
   const db = getDB();
-
   if (username !== undefined) {
-    const existing = db.prepare(`SELECT id FROM users WHERE username = ? AND id != ?`)
-      .get(username, req.user.id);
-    if (existing) return res.status(409).json({ error: 'Username already taken' });
-    db.prepare(`UPDATE users SET username = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
-      .run(username, req.user.id);
+    const ex = await db.execute({ sql: 'SELECT id FROM users WHERE username=? AND id!=?', args: [username, req.user.id] });
+    if (ex.rows.length) return res.status(409).json({ error: 'Username taken' });
+    await db.execute({ sql: 'UPDATE users SET username=?,updated_at=CURRENT_TIMESTAMP WHERE id=?', args: [username, req.user.id] });
   }
-
   if (auto_delete !== undefined) {
-    db.prepare(`UPDATE users SET auto_delete = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
-      .run(auto_delete ? 1 : 0, req.user.id);
+    await db.execute({ sql: 'UPDATE users SET auto_delete=?,updated_at=CURRENT_TIMESTAMP WHERE id=?', args: [auto_delete ? 1 : 0, req.user.id] });
   }
-
-  const updated = db.prepare(`
-    SELECT id, username, email, avatar, auto_delete FROM users WHERE id = ?
-  `).get(req.user.id);
-
-  res.json({ user: updated });
+  const updated = await db.execute({ sql: 'SELECT id,username,email,avatar,auto_delete FROM users WHERE id=?', args: [req.user.id] });
+  res.json({ user: updated.rows[0] });
 }));
 
-// POST /api/profile/delete-account — delete everything
 router.delete('/account', authenticate, asyncHandler(async (req, res) => {
   const db = getDB();
-  db.prepare(`DELETE FROM users WHERE id = ?`).run(req.user.id);
+  await db.execute({ sql: 'DELETE FROM users WHERE id=?', args: [req.user.id] });
   res.json({ success: true });
 }));
 

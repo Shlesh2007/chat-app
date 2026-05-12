@@ -6,81 +6,44 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
-// GET /api/conversations — list all for user
 router.get('/', authenticate, asyncHandler(async (req, res) => {
   const db = getDB();
-  const conversations = db.prepare(`
-    SELECT * FROM conversations
-    WHERE user_id = ?
-    ORDER BY updated_at DESC
-  `).all(req.user.id);
-
-  res.json({ conversations });
+  const result = await db.execute({ sql: 'SELECT * FROM conversations WHERE user_id=? ORDER BY updated_at DESC', args: [req.user.id] });
+  res.json({ conversations: result.rows });
 }));
 
-// POST /api/conversations — create new
 router.post('/', authenticate, asyncHandler(async (req, res) => {
   const { title = 'New Chat' } = req.body;
   const db = getDB();
   const id = uuidv4();
-  db.prepare(`INSERT INTO conversations (id, user_id, title) VALUES (?, ?, ?)`)
-    .run(id, req.user.id, title);
-
-  const conversation = db.prepare('SELECT * FROM conversations WHERE id = ?').get(id);
-  res.status(201).json({ conversation });
+  await db.execute({ sql: 'INSERT INTO conversations (id,user_id,title) VALUES (?,?,?)', args: [id, req.user.id, title] });
+  const result = await db.execute({ sql: 'SELECT * FROM conversations WHERE id=?', args: [id] });
+  res.status(201).json({ conversation: result.rows[0] });
 }));
 
-// GET /api/conversations/:id — get with messages
 router.get('/:id', authenticate, asyncHandler(async (req, res) => {
   const db = getDB();
-  const conversation = db.prepare(`
-    SELECT * FROM conversations WHERE id = ? AND user_id = ?
-  `).get(req.params.id, req.user.id);
-
-  if (!conversation) {
-    return res.status(404).json({ error: 'Conversation not found' });
-  }
-
-  const messages = db.prepare(`
-    SELECT * FROM messages WHERE conversation_id = ? ORDER BY created_at ASC
-  `).all(req.params.id);
-
-  res.json({ conversation, messages });
+  const conv = await db.execute({ sql: 'SELECT * FROM conversations WHERE id=? AND user_id=?', args: [req.params.id, req.user.id] });
+  if (!conv.rows[0]) return res.status(404).json({ error: 'Not found' });
+  const msgs = await db.execute({ sql: 'SELECT * FROM messages WHERE conversation_id=? ORDER BY created_at ASC', args: [req.params.id] });
+  res.json({ conversation: conv.rows[0], messages: msgs.rows });
 }));
 
-// PATCH /api/conversations/:id — update title
 router.patch('/:id', authenticate, asyncHandler(async (req, res) => {
   const { title } = req.body;
   const db = getDB();
-
-  const conversation = db.prepare(`
-    SELECT * FROM conversations WHERE id = ? AND user_id = ?
-  `).get(req.params.id, req.user.id);
-
-  if (!conversation) {
-    return res.status(404).json({ error: 'Conversation not found' });
-  }
-
-  db.prepare(`
-    UPDATE conversations SET title = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?
-  `).run(title, req.params.id);
-
+  const conv = await db.execute({ sql: 'SELECT id FROM conversations WHERE id=? AND user_id=?', args: [req.params.id, req.user.id] });
+  if (!conv.rows[0]) return res.status(404).json({ error: 'Not found' });
+  await db.execute({ sql: 'UPDATE conversations SET title=?, updated_at=CURRENT_TIMESTAMP WHERE id=?', args: [title, req.params.id] });
   res.json({ success: true });
 }));
 
-// DELETE /api/conversations/:id
 router.delete('/:id', authenticate, asyncHandler(async (req, res) => {
   const db = getDB();
-
-  const conversation = db.prepare(`
-    SELECT * FROM conversations WHERE id = ? AND user_id = ?
-  `).get(req.params.id, req.user.id);
-
-  if (!conversation) {
-    return res.status(404).json({ error: 'Conversation not found' });
-  }
-
-  db.prepare('DELETE FROM conversations WHERE id = ?').run(req.params.id);
+  const conv = await db.execute({ sql: 'SELECT id FROM conversations WHERE id=? AND user_id=?', args: [req.params.id, req.user.id] });
+  if (!conv.rows[0]) return res.status(404).json({ error: 'Not found' });
+  await db.execute({ sql: 'DELETE FROM messages WHERE conversation_id=?', args: [req.params.id] });
+  await db.execute({ sql: 'DELETE FROM conversations WHERE id=?', args: [req.params.id] });
   res.json({ success: true });
 }));
 

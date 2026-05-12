@@ -7,91 +7,63 @@ import { streamOllamaResponse } from '../services/ollama.js';
 import { streamGroqResponse } from '../services/groq.js';
 import { searchDocuments } from '../services/rag.js';
 
-// Use Groq if API key is set, otherwise fall back to Ollama
 const useGroq = () => !!process.env.GROQ_API_KEY;
 
 const router = express.Router();
 
-// POST /api/chat/:conversationId/message — send message with streaming
 router.post('/:conversationId/message', authenticate, asyncHandler(async (req, res) => {
   const { content, displayContent, useRAG = false } = req.body;
   const { conversationId } = req.params;
 
-  if (!content || !content.trim()) {
-    return res.status(400).json({ error: 'Message content is required' });
-  }
+  if (!content?.trim()) return res.status(400).json({ error: 'Message content is required' });
 
   const db = getDB();
+  const convResult = await db.execute({ sql: 'SELECT * FROM conversations WHERE id=? AND user_id=?', args: [conversationId, req.user.id] });
+  const conversation = convResult.rows[0];
+  if (!conversation) return res.status(404).json({ error: 'Conversation not found' });
 
-  // Verify conversation belongs to user
-  const conversation = db.prepare(`
-    SELECT * FROM conversations WHERE id = ? AND user_id = ?
-  `).get(conversationId, req.user.id);
-
-  if (!conversation) {
-    return res.status(404).json({ error: 'Conversation not found' });
-  }
-
-  // Save user message — store clean display text, not raw file dump
+  // Save user message (clean display text)
   const userMsgId = uuidv4();
   const savedContent = displayContent?.trim() || content.trim();
-  db.prepare(`INSERT INTO messages (id, conversation_id, role, content) VALUES (?, ?, 'user', ?)`)
-    .run(userMsgId, conversationId, savedContent);
+  await db.execute({ sql: 'INSERT INTO messages (id,conversation_id,role,content) VALUES (?,?,?,?)', args: [userMsgId, conversationId, 'user', savedContent] });
+  await db.execute({ sql: 'UPDATE conversations SET updated_at=CURRENT_TIMESTAMP WHERE id=?', args: [conversationId] });
 
-  // Update conversation timestamp
-  db.prepare(`UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(conversationId);
-
-  // Auto-title conversation from first message
+  // Auto-title
   if (conversation.title === 'New Chat') {
     const shortTitle = content.trim().slice(0, 50) + (content.length > 50 ? '...' : '');
-    db.prepare(`UPDATE conversations SET title = ? WHERE id = ?`).run(shortTitle, conversationId);
+    await db.execute({ sql: 'UPDATE conversations SET title=? WHERE id=?', args: [shortTitle, conversationId] });
   }
 
-  // Fetch conversation history EXCLUDING the message just saved (last 10 prior messages)
-  const history = db.prepare(`
-    SELECT role, content FROM messages
-    WHERE conversation_id = ? AND id != ?
-    ORDER BY created_at ASC
-    LIMIT 10
-  `).all(conversationId, userMsgId);
+  // History (exclude current message)
+  const histResult = await db.execute({
+    sql: 'SELECT role,content FROM messages WHERE conversation_id=? AND id!=? ORDER BY created_at ASC LIMIT 10',
+    args: [conversationId, userMsgId]
+  });
+  const history = histResult.rows;
 
-  // RAG context injection
+  // RAG
   let ragContext = '';
   if (useRAG) {
     try {
       const docs = await searchDocuments(content, req.user.id);
-      if (docs.length > 0) {
-        ragContext = '\n\nRelevant context from uploaded documents:\n' +
-          docs.map((d, i) => `[${i + 1}] ${d.pageContent}`).join('\n\n');
-      }
-    } catch (err) {
-      console.warn('RAG search failed:', err.message);
-    }
+      if (docs.length > 0) ragContext = '\n\nRelevant context:\n' + docs.map((d, i) => `[${i + 1}] ${d.pageContent}`).join('\n\n');
+    } catch {}
   }
 
-  // Build messages array
-  const systemPrompt = `You are a helpful AI assistant built by Shlesh Darji, a Computer Science Engineering student at LJ University.
+  const systemPrompt = `You are a helpful AI assistant built by Shlesh Darji, a CSE student at LJ University.
+- You CAN read files (PDF, Word, Excel, CSV, code) attached via the paperclip button.
+- You CAN analyze images shared in chat.
+- You CAN generate images — respond with: [GENERATE_IMAGE: detailed prompt]
+- If asked who built you: "I was built by Shlesh Darji, a CSE student at LJ University."
+- Never say you cannot receive files or images.
+Answer clearly and helpfully.${ragContext}`;
 
-IMPORTANT CAPABILITIES YOU HAVE:
-- You CAN read and analyze files. Users can attach PDF, Word (.doc/.docx), Excel (.xls/.xlsx), CSV, TXT, Markdown, and all code files directly in the chat using the paperclip button.
-- You CAN analyze images. When a user shares an image as base64 data (prefixed with [IMAGE ATTACHED:]), describe and analyze it in detail.
-- When a user shares file content with you, analyze it fully and answer their questions about it.
-- You CAN generate images. When asked to generate/draw/create an image, respond with: [GENERATE_IMAGE: detailed prompt here]
-- You have memory of this conversation and can refer back to earlier messages.
-
-IDENTITY:
-- If anyone asks who made you, who built you, or who developed you — always say: "I was built by Shlesh Darji, a CSE student at LJ University."
-- Never say you were made by Meta, OpenAI, or any other company.
-- Never say you cannot receive or read files or images — you can, through the chat interface.
-
-Answer all questions clearly, helpfully, and in detail.${ragContext}`;
   const messages = [
     { role: 'system', content: systemPrompt },
     ...history,
-    { role: 'user', content: content.trim() }, // full content (may include file text/image)
+    { role: 'user', content: content.trim() },
   ];
 
-  // Set up SSE streaming
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
@@ -107,23 +79,14 @@ Answer all questions clearly, helpfully, and in detail.${ragContext}`;
         res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunk })}\n\n`);
       });
     } else {
-      await streamOllamaResponse(
-        messages,
-        conversation.model || process.env.OLLAMA_MODEL || 'llama3',
-        (chunk) => {
-          fullResponse += chunk;
-          res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunk })}\n\n`);
-        }
-      );
+      await streamOllamaResponse(messages, process.env.OLLAMA_MODEL || 'llama3', (chunk) => {
+        fullResponse += chunk;
+        res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunk })}\n\n`);
+      });
     }
 
-    // Save assistant message
     const assistantMsgId = uuidv4();
-    db.prepare(`
-      INSERT INTO messages (id, conversation_id, role, content)
-      VALUES (?, ?, 'assistant', ?)
-    `).run(assistantMsgId, conversationId, fullResponse);
-
+    await db.execute({ sql: 'INSERT INTO messages (id,conversation_id,role,content) VALUES (?,?,?,?)', args: [assistantMsgId, conversationId, 'assistant', fullResponse] });
     res.write(`data: ${JSON.stringify({ type: 'done', messageId: assistantMsgId })}\n\n`);
   } catch (err) {
     console.error('Streaming error:', err.message);
