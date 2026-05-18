@@ -31,35 +31,49 @@ router.post('/login', asyncHandler(async (req, res) => {
   res.json({ token });
 }));
 
-// GET /api/admin/users — list all users with stats
+// GET /api/admin/users — list all users
 router.get('/users', adminAuth, asyncHandler(async (req, res) => {
   const db = getDB();
-  const result = await db.execute(`
-    SELECT id, username, email, avatar, is_blocked, last_seen, created_at
-    FROM users
-    ORDER BY created_at DESC
-  `);
-  res.json({ users: result.rows });
+  try {
+    const result = await db.execute(`
+      SELECT id, username, email, avatar,
+        COALESCE(is_blocked, 0) as is_blocked,
+        COALESCE(last_seen, created_at) as last_seen,
+        created_at
+      FROM users
+      ORDER BY created_at DESC
+    `);
+    res.json({ users: result.rows });
+  } catch {
+    // Fallback if new columns don't exist yet
+    const result = await db.execute(`
+      SELECT id, username, email, avatar, created_at,
+        0 as is_blocked, created_at as last_seen
+      FROM users ORDER BY created_at DESC
+    `);
+    res.json({ users: result.rows });
+  }
 }));
 
 // GET /api/admin/stats — overall stats
 router.get('/stats', adminAuth, asyncHandler(async (req, res) => {
   const db = getDB();
-  const [users, convs, msgs, blocked] = await Promise.all([
+  const [users, convs, msgs] = await Promise.all([
     db.execute('SELECT COUNT(*) as count FROM users'),
     db.execute('SELECT COUNT(*) as count FROM conversations'),
     db.execute('SELECT COUNT(*) as count FROM messages'),
-    db.execute('SELECT COUNT(*) as count FROM users WHERE is_blocked=1'),
   ]);
-  const recent = await db.execute(
-    'SELECT id, username, email, last_seen, created_at FROM users ORDER BY created_at DESC LIMIT 5'
-  );
+  let blockedCount = 0;
+  try {
+    const b = await db.execute('SELECT COUNT(*) as count FROM users WHERE is_blocked=1');
+    blockedCount = b.rows[0].count;
+  } catch {}
+
   res.json({
     totalUsers: users.rows[0].count,
     totalConversations: convs.rows[0].count,
     totalMessages: msgs.rows[0].count,
-    blockedUsers: blocked.rows[0].count,
-    recentUsers: recent.rows,
+    blockedUsers: blockedCount,
   });
 }));
 
