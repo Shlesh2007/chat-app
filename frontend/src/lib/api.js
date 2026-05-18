@@ -20,11 +20,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 globally
+// Handle 401 globally — but NOT on auth endpoints (login/register)
+// to allow the login page to show its own error messages
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    const url = err.config?.url || '';
+    const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register');
+    const isLoginPage = window.location.pathname === '/login' || window.location.pathname === '/register';
+
+    if (err.response?.status === 401 && !isAuthEndpoint && !isLoginPage) {
       localStorage.removeItem('auth-storage');
       window.location.href = '/login';
     }
