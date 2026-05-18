@@ -77,17 +77,18 @@ router.get('/stats', adminAuth, asyncHandler(async (req, res) => {
   });
 }));
 
-// PATCH /api/admin/users/:id/block — block a user
+// PATCH /api/admin/users/:id/block — block a user with optional reason
 router.patch('/users/:id/block', adminAuth, asyncHandler(async (req, res) => {
+  const { reason = '' } = req.body;
   const db = getDB();
-  await db.execute({ sql: 'UPDATE users SET is_blocked=1 WHERE id=?', args: [req.params.id] });
+  await db.execute({ sql: 'UPDATE users SET is_blocked=1, block_reason=? WHERE id=?', args: [reason, req.params.id] });
   res.json({ success: true, message: 'User blocked' });
 }));
 
 // PATCH /api/admin/users/:id/unblock — unblock a user
 router.patch('/users/:id/unblock', adminAuth, asyncHandler(async (req, res) => {
   const db = getDB();
-  await db.execute({ sql: 'UPDATE users SET is_blocked=0 WHERE id=?', args: [req.params.id] });
+  await db.execute({ sql: 'UPDATE users SET is_blocked=0, block_reason=NULL WHERE id=?', args: [req.params.id] });
   res.json({ success: true, message: 'User unblocked' });
 }));
 

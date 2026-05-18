@@ -91,6 +91,55 @@ function StatCard({ icon, label, value, color }) {
   );
 }
 
+// ── Block modal with reason ───────────────────────────────────────────────────
+function BlockModal({ user, onClose, onSuccess }) {
+  const [reason, setReason] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await adminFetch(`/users/${user.id}/block`, { method: 'PATCH', body: JSON.stringify({ reason }) });
+      onSuccess(`${user.username} has been blocked`);
+      onClose();
+    } catch (err) { alert(err.message); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-white">Block User</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-white"><X size={18} /></button>
+        </div>
+        <p className="text-sm text-gray-400 mb-4">
+          Block <span className="text-white font-medium">{user.username}</span>? They will see the reason when they try to use the app.
+        </p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Reason for blocking (e.g. Violation of terms, spam, abuse...)"
+            rows={3}
+            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+            autoFocus
+          />
+          <div className="flex gap-3">
+            <button type="submit" disabled={loading}
+              className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-lg transition">
+              {loading ? 'Blocking...' : 'Block User'}
+            </button>
+            <button type="button" onClick={onClose}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm py-2.5 rounded-lg transition">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ── Password modal ────────────────────────────────────────────────────────────
 function PasswordModal({ user, onClose, onSuccess }) {
   const [newPassword, setNewPassword] = useState('');
@@ -262,6 +311,7 @@ function AdminDashboard({ onLogout }) {
   const [search, setSearch] = useState('');
   const [msg, setMsg] = useState('');
   const [pwdUser, setPwdUser] = useState(null);
+  const [blockUser, setBlockUser] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
 
   const load = async () => {
@@ -279,17 +329,25 @@ function AdminDashboard({ onLogout }) {
 
   const notify = (text) => { setMsg(text); setTimeout(() => setMsg(''), 3000); };
 
-  const handleBlock = async (id, blocked) => {
-    await adminFetch(`/users/${id}/${blocked ? 'unblock' : 'block'}`, { method: 'PATCH' });
-    notify(blocked ? 'User unblocked' : 'User blocked');
-    load();
+  const handleBlock = async (id, isBlocked) => {
+    if (!isBlocked) {
+      // Show block modal to enter reason
+      const user = users.find(u => u.id === id);
+      setBlockUser(user);
+    } else {
+      // Unblock directly
+      await adminFetch(`/users/${id}/unblock`, { method: 'PATCH' });
+      notify('User unblocked');
+      // Update local state immediately
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, is_blocked: 0, block_reason: null } : u));
+    }
   };
 
   const handleDelete = async (id, username) => {
     if (!confirm(`Delete user "${username}" and all their data?`)) return;
     await adminFetch(`/users/${id}`, { method: 'DELETE' });
     notify('User deleted');
-    load();
+    setUsers(prev => prev.filter(u => u.id !== id));
   };
 
   const filtered = users.filter((u) =>
@@ -326,6 +384,17 @@ function AdminDashboard({ onLogout }) {
       {pwdUser && (
         <PasswordModal user={pwdUser} onClose={() => setPwdUser(null)}
           onSuccess={(m) => { notify(m); setPwdUser(null); }} />
+      )}
+      {blockUser && (
+        <BlockModal
+          user={blockUser}
+          onClose={() => setBlockUser(null)}
+          onSuccess={(m) => {
+            notify(m);
+            setUsers(prev => prev.map(u => u.id === blockUser.id ? { ...u, is_blocked: 1 } : u));
+            setBlockUser(null);
+          }}
+        />
       )}
 
       <div className="border-b border-gray-700 px-6 py-4 flex items-center justify-between">

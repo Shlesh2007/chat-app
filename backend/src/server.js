@@ -27,7 +27,7 @@ app.use(cors({
   origin: (origin, cb) => cb(null, true), // allow all in production (Vercel + local)
   credentials: true,
 }));
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 500 }));
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));

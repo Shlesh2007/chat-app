@@ -73,6 +73,7 @@ export async function initDB() {
   const migrations = [
     'ALTER TABLE users ADD COLUMN is_blocked INTEGER DEFAULT 0',
     'ALTER TABLE users ADD COLUMN last_seen DATETIME DEFAULT CURRENT_TIMESTAMP',
+    'ALTER TABLE users ADD COLUMN block_reason TEXT DEFAULT NULL',
   ];
   for (const sql of migrations) {
     try { await _db.execute(sql); } catch {} // ignore if column already exists
