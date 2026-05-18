@@ -69,5 +69,14 @@ export async function initDB() {
     try { await _db.execute(sql); } catch {}
   }
 
+  // Migrations — add new columns if they don't exist yet
+  const migrations = [
+    'ALTER TABLE users ADD COLUMN is_blocked INTEGER DEFAULT 0',
+    'ALTER TABLE users ADD COLUMN last_seen DATETIME DEFAULT CURRENT_TIMESTAMP',
+  ];
+  for (const sql of migrations) {
+    try { await _db.execute(sql); } catch {} // ignore if column already exists
+  }
+
   console.log('✅ Turso database initialized');
 }

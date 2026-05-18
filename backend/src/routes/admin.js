@@ -35,16 +35,9 @@ router.post('/login', asyncHandler(async (req, res) => {
 router.get('/users', adminAuth, asyncHandler(async (req, res) => {
   const db = getDB();
   const result = await db.execute(`
-    SELECT
-      u.id, u.username, u.email, u.avatar,
-      u.is_blocked, u.last_seen, u.created_at,
-      COUNT(DISTINCT c.id) as conversation_count,
-      COUNT(DISTINCT m.id) as message_count
-    FROM users u
-    LEFT JOIN conversations c ON c.user_id = u.id
-    LEFT JOIN messages m ON m.conversation_id = c.id
-    GROUP BY u.id
-    ORDER BY u.created_at DESC
+    SELECT id, username, email, avatar, is_blocked, last_seen, created_at
+    FROM users
+    ORDER BY created_at DESC
   `);
   res.json({ users: result.rows });
 }));
@@ -52,16 +45,15 @@ router.get('/users', adminAuth, asyncHandler(async (req, res) => {
 // GET /api/admin/stats — overall stats
 router.get('/stats', adminAuth, asyncHandler(async (req, res) => {
   const db = getDB();
-  const [users, convs, msgs] = await Promise.all([
+  const [users, convs, msgs, blocked] = await Promise.all([
     db.execute('SELECT COUNT(*) as count FROM users'),
     db.execute('SELECT COUNT(*) as count FROM conversations'),
     db.execute('SELECT COUNT(*) as count FROM messages'),
+    db.execute('SELECT COUNT(*) as count FROM users WHERE is_blocked=1'),
   ]);
-  const blocked = await db.execute('SELECT COUNT(*) as count FROM users WHERE is_blocked=1');
-  const recent = await db.execute(`
-    SELECT id, username, email, last_seen, created_at
-    FROM users ORDER BY last_seen DESC LIMIT 5
-  `);
+  const recent = await db.execute(
+    'SELECT id, username, email, last_seen, created_at FROM users ORDER BY created_at DESC LIMIT 5'
+  );
   res.json({
     totalUsers: users.rows[0].count,
     totalConversations: convs.rows[0].count,
@@ -105,8 +97,26 @@ router.patch('/users/:id/password', adminAuth, asyncHandler(async (req, res) => 
   res.json({ success: true, message: 'Password updated' });
 }));
 
-// GET /api/admin/users/:id/conversations — view user's conversations
-router.get('/users/:id/conversations', adminAuth, asyncHandler(async (req, res) => {
+// POST /api/admin/change-password — change admin password (updates in-memory, persists to env on restart)
+router.post('/change-password', adminAuth, asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (currentPassword !== process.env.ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'Current password is incorrect' });
+  }
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  }
+
+  // Update in memory for this session
+  process.env.ADMIN_PASSWORD = newPassword;
+
+  res.json({
+    success: true,
+    message: 'Password changed for this session. To make it permanent, update ADMIN_PASSWORD in your Render environment variables.',
+    newPassword, // returned so admin can copy it to Render
+  });
+}));
   const db = getDB();
   const result = await db.execute({
     sql: 'SELECT * FROM conversations WHERE user_id=? ORDER BY updated_at DESC',
