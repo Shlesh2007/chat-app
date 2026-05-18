@@ -34,25 +34,14 @@ router.post('/login', asyncHandler(async (req, res) => {
 // GET /api/admin/users — list all users
 router.get('/users', adminAuth, asyncHandler(async (req, res) => {
   const db = getDB();
-  try {
-    const result = await db.execute(`
-      SELECT id, username, email, avatar,
-        COALESCE(is_blocked, 0) as is_blocked,
-        COALESCE(last_seen, created_at) as last_seen,
-        created_at
-      FROM users
-      ORDER BY created_at DESC
-    `);
-    res.json({ users: result.rows });
-  } catch {
-    // Fallback if new columns don't exist yet
-    const result = await db.execute(`
-      SELECT id, username, email, avatar, created_at,
-        0 as is_blocked, created_at as last_seen
-      FROM users ORDER BY created_at DESC
-    `);
-    res.json({ users: result.rows });
-  }
+  const result = await db.execute(`
+    SELECT id, username, email, avatar,
+      COALESCE(is_blocked, 0) as is_blocked,
+      created_at
+    FROM users
+    ORDER BY created_at DESC
+  `);
+  res.json({ users: result.rows });
 }));
 
 // GET /api/admin/stats — overall stats
