@@ -176,7 +176,10 @@ export default function MessageBubble({ message }) {
             {copied ? <Check size={13} /> : <Copy size={13} />}
           </button>
           <span className="text-xs text-gray-500">
-            {new Date(message.created_at).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })}
+            {(() => {
+              const s = message.created_at?.toString().endsWith('Z') ? message.created_at : message.created_at + 'Z';
+              return new Date(s).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' });
+            })()}
           </span>
         </div>
       </div>

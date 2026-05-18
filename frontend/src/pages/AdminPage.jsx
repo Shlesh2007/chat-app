@@ -161,8 +161,11 @@ function UserDetail({ user, onBack }) {
     finally { setLoadingMsgs(false); }
   };
 
-  const fmt = (d) => d ? new Date(d).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-
+  const fmt = (d) => {
+    if (!d) return '';
+    const s = d.toString().endsWith('Z') ? d : d + 'Z';
+    return new Date(s).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       <button onClick={onBack} className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition">
@@ -244,6 +247,14 @@ function UserDetail({ user, onBack }) {
 }
 
 // ── Main dashboard ────────────────────────────────────────────────────────────
+// Helper: parse DB timestamp as UTC (Turso returns without Z suffix)
+const parseUTC = (d) => {
+  if (!d) return null;
+  // Add Z to treat as UTC if not already marked
+  const s = d.toString().endsWith('Z') ? d : d + 'Z';
+  return new Date(s);
+};
+
 function AdminDashboard({ onLogout }) {
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -286,8 +297,11 @@ function AdminDashboard({ onLogout }) {
     u.email?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const fmt = (d) => d ? new Date(d).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never';
-
+  const fmt = (d) => {
+    const dt = parseUTC(d);
+    if (!dt) return 'Never';
+    return dt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
   if (selectedUser) {
     return (
       <div className="min-h-screen bg-gray-900 text-white">
