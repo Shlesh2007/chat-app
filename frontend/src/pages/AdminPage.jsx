@@ -293,13 +293,18 @@ function AdminDashboard({ onLogout }) {
   const notify = (text) => { setMsg(text); setTimeout(() => setMsg(''), 3000); };
 
   const handleBlock = async (id, isBlocked) => {
-    if (!isBlocked) {
+    // isBlocked is 0 or 1 from Turso — coerce to boolean
+    const blocked = Boolean(isBlocked);
+    if (!blocked) {
+      // not blocked → open block modal
       setBlockUser(users.find(u => u.id === id));
     } else {
+      // blocked → unblock
       try {
         await adminFetch(`/users/${id}/unblock`, { method: 'PATCH' });
         notify('User unblocked');
         setUsers(prev => prev.map(u => u.id === id ? { ...u, is_blocked: 0 } : u));
+        setStats(prev => prev ? { ...prev, blockedUsers: Math.max(0, Number(prev.blockedUsers) - 1) } : prev);
       } catch (err) {
         notify('Failed to unblock: ' + err.message);
       }
@@ -340,7 +345,12 @@ function AdminDashboard({ onLogout }) {
       {pwdUser && <PasswordModal user={pwdUser} onClose={() => setPwdUser(null)} onSuccess={(m) => { notify(m); setPwdUser(null); }} />}
       {blockUser && (
         <BlockModal user={blockUser} onClose={() => setBlockUser(null)}
-          onSuccess={(m) => { notify(m); setUsers(prev => prev.map(u => u.id === blockUser.id ? { ...u, is_blocked: 1 } : u)); setBlockUser(null); }} />
+          onSuccess={(m) => {
+            notify(m);
+            setUsers(prev => prev.map(u => u.id === blockUser.id ? { ...u, is_blocked: 1 } : u));
+            setStats(prev => prev ? { ...prev, blockedUsers: Number(prev.blockedUsers) + 1 } : prev);
+            setBlockUser(null);
+          }} />
       )}
       <div className="border-b border-gray-700 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -422,9 +432,9 @@ function AdminDashboard({ onLogout }) {
                           <div className="flex items-center justify-end gap-2">
                             <button onClick={() => setPwdUser(u)} className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-900/30 transition" title="Reset password"><Key size={15} /></button>
                             <button onClick={() => handleBlock(u.id, u.is_blocked)}
-                              className={`p-1.5 rounded-lg transition ${u.is_blocked ? 'text-green-400 hover:bg-green-900/30' : 'text-red-400 hover:bg-red-900/30'}`}
-                              title={u.is_blocked ? 'Unblock user' : 'Block user'}>
-                              {u.is_blocked ? <ShieldCheck size={15} /> : <ShieldOff size={15} />}
+                              className={`p-1.5 rounded-lg transition ${u.is_blocked ? 'text-red-400 hover:bg-green-900/30 hover:text-green-400' : 'text-gray-400 hover:bg-red-900/30 hover:text-red-400'}`}
+                              title={u.is_blocked ? 'Click to unblock' : 'Click to block'}>
+                              {u.is_blocked ? <ShieldOff size={15} /> : <ShieldCheck size={15} />}
                             </button>
                             <button onClick={() => handleDelete(u.id, u.username)} className="p-1.5 rounded-lg text-red-400 hover:bg-red-900/30 transition" title="Delete"><Trash2 size={15} /></button>
                           </div>
