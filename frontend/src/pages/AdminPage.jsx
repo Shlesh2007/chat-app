@@ -452,80 +452,80 @@ function AdminDashboard({ onLogout }) {
 
         {/* Users tab */}
         {tab === 'users' && (
-          <div className="px-5 py-4 border-b border-gray-700 flex items-center justify-between gap-4 flex-wrap">
-            <h2 className="font-semibold text-white">All Users ({users.length})</h2>
-            <input value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name or email..."
-              className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-red-500 w-64" />
-          </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center py-12 text-gray-400">Loading...</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-700 text-gray-400 text-xs uppercase">
-                    <th className="text-left px-5 py-3">User</th>
-                    <th className="text-left px-5 py-3 hidden md:table-cell">Email</th>
-                    <th className="text-left px-5 py-3 hidden lg:table-cell">Joined</th>
-                    <th className="text-left px-5 py-3">Status</th>
-                    <th className="text-right px-5 py-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((u) => (
-                    <tr key={u.id} className="border-b border-gray-700/50 hover:bg-gray-700/30 transition">
-                      <td className="px-5 py-3">
-                        <button onClick={() => setSelectedUser(u)} className="flex items-center gap-2 hover:text-green-400 transition">
-                          {u.avatar ? (
-                            <img src={u.avatar} alt="" className="w-7 h-7 rounded-full object-cover" />
-                          ) : (
-                            <div className="w-7 h-7 bg-green-600 rounded-full flex items-center justify-center text-xs font-bold text-white">
-                              {u.username?.[0]?.toUpperCase()}
-                            </div>
-                          )}
-                          <span className="font-medium text-white">{u.username}</span>
-                          <ChevronRight size={13} className="text-gray-500" />
-                        </button>
-                      </td>
-                      <td className="px-5 py-3 text-gray-400 hidden md:table-cell">{u.email}</td>
-                      <td className="px-5 py-3 text-gray-400 hidden lg:table-cell">{fmt(u.created_at)}</td>
-                      <td className="px-5 py-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          u.is_blocked ? 'bg-red-900/50 text-red-400 border border-red-800' : 'bg-green-900/50 text-green-400 border border-green-800'
-                        }`}>
-                          {u.is_blocked ? 'Blocked' : 'Active'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <div className="flex items-center justify-end gap-2">
-                          <button onClick={() => setPwdUser(u)}
-                            className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-900/30 transition" title="Reset password">
-                            <Key size={15} />
-                          </button>
-                          <button onClick={() => handleBlock(u.id, u.is_blocked)}
-                            className={`p-1.5 rounded-lg transition ${u.is_blocked ? 'text-green-400 hover:bg-green-900/30' : 'text-yellow-400 hover:bg-yellow-900/30'}`}
-                            title={u.is_blocked ? 'Unblock' : 'Block'}>
-                            {u.is_blocked ? <Unlock size={15} /> : <Lock size={15} />}
-                          </button>
-                          <button onClick={() => handleDelete(u.id, u.username)}
-                            className="p-1.5 rounded-lg text-red-400 hover:bg-red-900/30 transition" title="Delete user">
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {filtered.length === 0 && (
-                    <tr><td colSpan={5} className="text-center py-8 text-gray-500">No users found</td></tr>
-                  )}
-                </tbody>
-              </table>
+          <div className="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-700 flex items-center justify-between gap-4 flex-wrap">
+              <h2 className="font-semibold text-white">All Users ({users.length})</h2>
+              <input value={search} onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name or email..."
+                className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-red-500 w-64" />
             </div>
-          )}
-        </div>
-        )} {/* end users tab */}
+            {loading ? (
+              <div className="flex items-center justify-center py-12 text-gray-400">Loading...</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-700 text-gray-400 text-xs uppercase">
+                      <th className="text-left px-5 py-3">User</th>
+                      <th className="text-left px-5 py-3 hidden md:table-cell">Email</th>
+                      <th className="text-left px-5 py-3 hidden lg:table-cell">Joined</th>
+                      <th className="text-left px-5 py-3">Status</th>
+                      <th className="text-right px-5 py-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map((u) => (
+                      <tr key={u.id} className="border-b border-gray-700/50 hover:bg-gray-700/30 transition">
+                        <td className="px-5 py-3">
+                          <button onClick={() => setSelectedUser(u)} className="flex items-center gap-2 hover:text-green-400 transition">
+                            {u.avatar ? (
+                              <img src={u.avatar} alt="" className="w-7 h-7 rounded-full object-cover" />
+                            ) : (
+                              <div className="w-7 h-7 bg-green-600 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                                {u.username?.[0]?.toUpperCase()}
+                              </div>
+                            )}
+                            <span className="font-medium text-white">{u.username}</span>
+                            <ChevronRight size={13} className="text-gray-500" />
+                          </button>
+                        </td>
+                        <td className="px-5 py-3 text-gray-400 hidden md:table-cell">{u.email}</td>
+                        <td className="px-5 py-3 text-gray-400 hidden lg:table-cell">{fmt(u.created_at)}</td>
+                        <td className="px-5 py-3">
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            u.is_blocked ? 'bg-red-900/50 text-red-400 border border-red-800' : 'bg-green-900/50 text-green-400 border border-green-800'
+                          }`}>
+                            {u.is_blocked ? 'Blocked' : 'Active'}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3">
+                          <div className="flex items-center justify-end gap-2">
+                            <button onClick={() => setPwdUser(u)}
+                              className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-900/30 transition" title="Reset password">
+                              <Key size={15} />
+                            </button>
+                            <button onClick={() => handleBlock(u.id, u.is_blocked)}
+                              className={`p-1.5 rounded-lg transition ${u.is_blocked ? 'text-green-400 hover:bg-green-900/30' : 'text-yellow-400 hover:bg-yellow-900/30'}`}
+                              title={u.is_blocked ? 'Unblock' : 'Block'}>
+                              {u.is_blocked ? <Unlock size={15} /> : <Lock size={15} />}
+                            </button>
+                            <button onClick={() => handleDelete(u.id, u.username)}
+                              className="p-1.5 rounded-lg text-red-400 hover:bg-red-900/30 transition" title="Delete user">
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {filtered.length === 0 && (
+                      <tr><td colSpan={5} className="text-center py-8 text-gray-500">No users found</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Feedbacks/Appeals tab */}
         {tab === 'feedbacks' && (
