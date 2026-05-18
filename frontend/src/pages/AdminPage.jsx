@@ -296,10 +296,8 @@ function UserDetail({ user, onBack }) {
 }
 
 // ── Main dashboard ────────────────────────────────────────────────────────────
-// Helper: parse DB timestamp as UTC (Turso returns without Z suffix)
 const parseUTC = (d) => {
   if (!d) return null;
-  // Add Z to treat as UTC if not already marked
   const s = d.toString().endsWith('Z') ? d : d + 'Z';
   return new Date(s);
 };
@@ -308,7 +306,7 @@ function AdminDashboard({ onLogout }) {
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
-  const [tab, setTab] = useState('users'); // 'users' | 'feedbacks'
+  const [tab, setTab] = useState('users');
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [msg, setMsg] = useState('');
@@ -338,14 +336,11 @@ function AdminDashboard({ onLogout }) {
 
   const handleBlock = async (id, isBlocked) => {
     if (!isBlocked) {
-      // Show block modal to enter reason
       const user = users.find(u => u.id === id);
       setBlockUser(user);
     } else {
-      // Unblock directly
       await adminFetch(`/users/${id}/unblock`, { method: 'PATCH' });
       notify('User unblocked');
-      // Update local state immediately
       setUsers(prev => prev.map(u => u.id === id ? { ...u, is_blocked: 0, block_reason: null } : u));
     }
   };
@@ -367,6 +362,7 @@ function AdminDashboard({ onLogout }) {
     if (!dt) return 'Never';
     return dt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
+  
   if (selectedUser) {
     return (
       <div className="min-h-screen bg-gray-900 text-white">
@@ -433,7 +429,6 @@ function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* Tabs */}
         {/* Tabs */}
         <div className="flex gap-2 border-b border-gray-700 pb-0">
           <button onClick={() => setTab('users')}
@@ -600,9 +595,8 @@ function AdminDashboard({ onLogout }) {
 }
 
 export default function AdminPage() {
-  const [loggedIn, setLoggedIn] = useState(false); // always start logged out
+  const [loggedIn, setLoggedIn] = useState(false);
 
-  // Clear admin token on every page load — always require fresh login
   useEffect(() => {
     localStorage.removeItem(ADMIN_KEY);
   }, []);
