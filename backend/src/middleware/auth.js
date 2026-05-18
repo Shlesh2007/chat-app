@@ -12,7 +12,10 @@ export async function authenticate(req, res, next) {
     const result = await db.execute({ sql: 'SELECT id,username,email,avatar,auto_delete FROM users WHERE id=?', args: [decoded.userId] });
     const user = result.rows[0];
     if (!user) return res.status(401).json({ error: 'User not found' });
+    if (user.is_blocked) return res.status(403).json({ error: 'Your account has been blocked. Contact support.' });
     req.user = user;
+    // Update last seen
+    getDB().execute({ sql: 'UPDATE users SET last_seen=CURRENT_TIMESTAMP WHERE id=?', args: [user.id] }).catch(() => {});
     next();
   } catch (err) {
     return res.status(401).json({ error: err.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token' });

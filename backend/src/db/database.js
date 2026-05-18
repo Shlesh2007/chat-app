@@ -27,6 +27,8 @@ export async function initDB() {
     password_hash TEXT NOT NULL,
     avatar TEXT DEFAULT NULL,
     auto_delete INTEGER DEFAULT 0,
+    is_blocked INTEGER DEFAULT 0,
+    last_seen DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);

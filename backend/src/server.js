@@ -12,6 +12,7 @@ import uploadRoutes from './routes/upload.js';
 import conversationRoutes from './routes/conversations.js';
 import imageRoutes from './routes/image.js';
 import profileRoutes from './routes/profile.js';
+import adminRoutes from './routes/admin.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { startScheduler } from './services/scheduler.js';
 
@@ -26,7 +27,7 @@ app.use(cors({
   origin: (origin, cb) => cb(null, true), // allow all in production (Vercel + local)
   credentials: true,
 }));
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 300 }));
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 500 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
@@ -37,6 +38,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/image', imageRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 app.use(errorHandler);
