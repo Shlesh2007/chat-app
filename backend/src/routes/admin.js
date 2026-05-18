@@ -92,6 +92,19 @@ router.delete('/users/:id', adminAuth, asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'User deleted' });
 }));
 
+// PATCH /api/admin/users/:id/password — reset a user's password
+router.patch('/users/:id/password', adminAuth, asyncHandler(async (req, res) => {
+  const { newPassword } = req.body;
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  }
+  const bcrypt = (await import('bcryptjs')).default;
+  const hash = await bcrypt.hash(newPassword, 12);
+  const db = getDB();
+  await db.execute({ sql: 'UPDATE users SET password_hash=?,updated_at=CURRENT_TIMESTAMP WHERE id=?', args: [hash, req.params.id] });
+  res.json({ success: true, message: 'Password updated' });
+}));
+
 // GET /api/admin/users/:id/conversations — view user's conversations
 router.get('/users/:id/conversations', adminAuth, asyncHandler(async (req, res) => {
   const db = getDB();

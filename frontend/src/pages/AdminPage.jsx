@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, MessageSquare, BarChart2, Shield, Trash2, Unlock, Lock, LogOut, RefreshCw } from 'lucide-react';
+import { Users, MessageSquare, BarChart2, Shield, Trash2, Unlock, Lock, LogOut, RefreshCw, Key, X } from 'lucide-react';
 import { backendUrl } from '../lib/utils.js';
 
 const ADMIN_KEY = 'admin_token';
@@ -96,6 +96,65 @@ function StatCard({ icon, label, value, color }) {
   );
 }
 
+// ── Password reset modal ──────────────────────────────────────────────────────
+function PasswordModal({ user, onClose, onSuccess }) {
+  const [newPassword, setNewPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (newPassword.length < 6) { setError('Min 6 characters'); return; }
+    setLoading(true);
+    setError('');
+    try {
+      await adminFetch(`/users/${user.id}/password`, {
+        method: 'PATCH',
+        body: JSON.stringify({ newPassword }),
+      });
+      onSuccess(`Password updated for ${user.username}`);
+      onClose();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-sm p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="font-semibold text-white">Reset Password</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-white"><X size={18} /></button>
+        </div>
+        <p className="text-sm text-gray-400 mb-4">Set new password for <span className="text-white font-medium">{user.username}</span></p>
+        {error && <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm px-3 py-2 rounded-lg mb-3">{error}</div>}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="New password (min 6 chars)"
+            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            autoFocus
+          />
+          <div className="flex gap-3">
+            <button type="submit" disabled={loading}
+              className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-lg transition">
+              {loading ? 'Updating...' : 'Update Password'}
+            </button>
+            <button type="button" onClick={onClose}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm py-2.5 rounded-lg transition">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ── Main dashboard ────────────────────────────────────────────────────────────
 function AdminDashboard({ onLogout }) {
   const [stats, setStats] = useState(null);
@@ -103,6 +162,7 @@ function AdminDashboard({ onLogout }) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [msg, setMsg] = useState('');
+  const [pwdUser, setPwdUser] = useState(null); // user to reset password for
 
   const load = async () => {
     setLoading(true);
@@ -143,6 +203,13 @@ function AdminDashboard({ onLogout }) {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
+      {pwdUser && (
+        <PasswordModal
+          user={pwdUser}
+          onClose={() => setPwdUser(null)}
+          onSuccess={(m) => { notify(m); setPwdUser(null); }}
+        />
+      )}
       {/* Header */}
       <div className="border-b border-gray-700 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -231,6 +298,13 @@ function AdminDashboard({ onLogout }) {
                       </td>
                       <td className="px-5 py-3">
                         <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setPwdUser(u)}
+                            className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-900/30 transition"
+                            title="Reset password"
+                          >
+                            <Key size={15} />
+                          </button>
                           <button
                             onClick={() => handleBlock(u.id, u.is_blocked)}
                             className={`p-1.5 rounded-lg transition ${u.is_blocked ? 'text-green-400 hover:bg-green-900/30' : 'text-yellow-400 hover:bg-yellow-900/30'}`}
