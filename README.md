@@ -2,7 +2,7 @@
 
 A full-stack AI chat application built by **Shlesh Darji**, CSE student at LJ University.
 
-> Live: [chatingapp-six.vercel.app](https://chatingapp-six.vercel.app)
+> Live: [chatingapp-six.vercel.app](https://chatapp-pi-woad.vercel.app/)
 
 ---
 
