@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import ChatPage from './pages/ChatPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
+import BackendWakeup from './components/BackendWakeup.jsx';
 import api from './lib/api.js';
 
 function PrivateRoute({ children }) {
@@ -20,23 +21,23 @@ function PublicRoute({ children }) {
 export default function App() {
   const { token, updateUser } = useAuthStore();
 
-  // On every page load, refresh user profile from backend
-  // so avatar, username, auto_delete are always up to date
   useEffect(() => {
     if (!token) return;
     api.get('/profile')
       .then(({ data }) => updateUser(data.user))
-      .catch(() => {}); // silently ignore if token expired
+      .catch(() => {});
   }, [token]);
 
   return (
-    <Routes>
-      <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-      <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
-      <Route path="/" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
-      <Route path="/chat/:conversationId" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
-      <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <BackendWakeup>
+      <Routes>
+        <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+        <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+        <Route path="/" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
+        <Route path="/chat/:conversationId" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BackendWakeup>
   );
 }
