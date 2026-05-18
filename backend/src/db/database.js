@@ -95,10 +95,14 @@ export async function initDB() {
     'ALTER TABLE users ADD COLUMN block_reason TEXT DEFAULT NULL',
     'ALTER TABLE users ADD COLUMN spam_count INTEGER DEFAULT 0',
     'ALTER TABLE documents ADD COLUMN extracted_text TEXT DEFAULT NULL',
+    'ALTER TABLE users ADD COLUMN credits INTEGER DEFAULT 50',
   ];
   for (const sql of migrations) {
     try { await _db.execute(sql); } catch {} // ignore if column already exists
   }
+
+  // One-time seed: give existing users who have 0 or NULL credits a starting balance of 100
+  await _db.execute('UPDATE users SET credits = 100 WHERE COALESCE(credits, 0) = 0');
 
   console.log('✅ Turso database initialized');
 }

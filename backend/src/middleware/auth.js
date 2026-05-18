@@ -10,7 +10,7 @@ export async function authenticate(req, res, next) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const db = getDB();
     const result = await db.execute({
-      sql: 'SELECT id,username,email,avatar,auto_delete,is_blocked,block_reason FROM users WHERE id=?',
+      sql: 'SELECT id,username,email,avatar,auto_delete,is_blocked,block_reason,credits FROM users WHERE id=?',
       args: [decoded.userId]
     });
     const user = result.rows[0];

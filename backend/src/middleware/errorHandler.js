@@ -1,13 +1,15 @@
 export function errorHandler(err, req, res, next) {
-  console.error('Error:', err.message);
-  console.error('Stack:', err.stack);
+  // Razorpay SDK throws plain objects, not Error instances
+  const message = err.message || (typeof err.error === 'string' ? err.error : JSON.stringify(err.error)) || 'Internal Server Error';
+  const status = err.status || err.statusCode || err.status_code || 500;
 
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
+  console.error('Error:', message);
+  if (err.stack) console.error('Stack:', err.stack);
+  else console.error('Raw error:', JSON.stringify(err));
 
   res.status(status).json({
     error: message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    ...(process.env.NODE_ENV === 'development' && err.stack && { stack: err.stack }),
   });
 }
 

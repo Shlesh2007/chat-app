@@ -38,6 +38,7 @@ router.get('/users', adminAuth, asyncHandler(async (req, res) => {
     SELECT id, username, email, avatar,
       COALESCE(is_blocked, 0) as is_blocked,
       COALESCE(spam_count, 0) as spam_count,
+      COALESCE(credits, 0) as credits,
       created_at
     FROM users
     ORDER BY created_at DESC
@@ -85,6 +86,22 @@ router.delete('/users/:id', adminAuth, asyncHandler(async (req, res) => {
   const db = getDB();
   await db.execute({ sql: 'DELETE FROM users WHERE id=?', args: [req.params.id] });
   res.json({ success: true, message: 'User deleted' });
+}));
+
+// PATCH /api/admin/users/:id/credits — add credits to a user
+router.patch('/users/:id/credits', adminAuth, asyncHandler(async (req, res) => {
+  const { credits } = req.body;
+  const n = parseInt(credits, 10);
+  if (!n || n < 1 || n > 10000) {
+    return res.status(400).json({ error: 'Credits must be between 1 and 10000' });
+  }
+  const db = getDB();
+  await db.execute({
+    sql: 'UPDATE users SET credits = COALESCE(credits, 0) + ? WHERE id=?',
+    args: [n, req.params.id],
+  });
+  const result = await db.execute({ sql: 'SELECT credits FROM users WHERE id=?', args: [req.params.id] });
+  res.json({ success: true, credits: Number(result.rows[0]?.credits || 0) });
 }));
 
 // PATCH /api/admin/users/:id/password — reset a user's password

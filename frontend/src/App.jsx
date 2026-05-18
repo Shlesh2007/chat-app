@@ -37,17 +37,16 @@ function setupInterceptor() {
 setupInterceptor();
 
 export default function App() {
-  const { token, updateUser, setBlocked, clearBlocked, blocked } = useAuthStore();
+  const { token, updateUser, refreshCredits, setBlocked, clearBlocked, blocked } = useAuthStore();
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
 
-  // On login — check if already blocked
+  // On login — check if already blocked and refresh credits
   useEffect(() => {
     if (!token) return;
     api.get('/profile')
       .then(({ data }) => {
-        updateUser(data.user);
-        // don't touch blocked state here — interceptor handles it
+        updateUser(data.user); // now includes credits
       })
       .catch((err) => {
         if (err.response?.status === 403 && err.response?.data?.error === 'BLOCKED') {

@@ -19,10 +19,10 @@ router.post('/register', asyncHandler(async (req, res) => {
 
   const passwordHash = await bcrypt.hash(password, 12);
   const userId = uuidv4();
-  await db.execute({ sql: 'INSERT INTO users (id,username,email,password_hash) VALUES (?,?,?,?)', args: [userId, username, email, passwordHash] });
+  await db.execute({ sql: 'INSERT INTO users (id,username,email,password_hash,credits) VALUES (?,?,?,?,100)', args: [userId, username, email, passwordHash] });
 
   const token = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
-  res.status(201).json({ token, user: { id: userId, username, email } });
+  res.status(201).json({ token, user: { id: userId, username, email, credits: 100 } });
 }));
 
 router.post('/login', asyncHandler(async (req, res) => {
@@ -37,8 +37,15 @@ router.post('/login', asyncHandler(async (req, res) => {
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
 
+  // Auto-top-up admin account if credits run low
+  const ADMIN_EMAIL = process.env.ADMIN_USER_EMAIL;
+  if (ADMIN_EMAIL && user.email === ADMIN_EMAIL && Number(user.credits || 0) < 100) {
+    await db.execute({ sql: 'UPDATE users SET credits = 9999 WHERE id=?', args: [user.id] });
+    user.credits = 9999;
+  }
+
   const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-  res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
+  res.json({ token, user: { id: user.id, username: user.username, email: user.email, credits: Number(user.credits || 0) } });
 }));
 
 router.get('/me', authenticate, asyncHandler(async (req, res) => {

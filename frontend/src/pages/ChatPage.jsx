@@ -5,6 +5,7 @@ import Sidebar from '../components/Sidebar.jsx';
 import ChatWindow from '../components/ChatWindow.jsx';
 import ChatInput from '../components/ChatInput.jsx';
 import WelcomeScreen from '../components/WelcomeScreen.jsx';
+import BuyCreditsModal from '../components/BuyCreditsModal.jsx';
 
 export default function ChatPage() {
   const { conversationId } = useParams();
@@ -15,6 +16,7 @@ export default function ChatPage() {
     loadConversation,
     activeConversationId,
     createConversation,
+    showBuyCredits,
   } = useChatStore();
 
   useEffect(() => {
@@ -51,6 +53,8 @@ export default function ChatPage() {
           <WelcomeScreen onNewChat={handleNewChat} />
         )}
       </main>
+
+      {showBuyCredits && <BuyCreditsModal />}
     </div>
   );
 }

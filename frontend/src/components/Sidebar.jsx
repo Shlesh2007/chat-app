@@ -4,14 +4,14 @@ import { useChatStore } from '../store/chatStore.js';
 import { useAuthStore } from '../store/authStore.js';
 import {
   Plus, MessageSquare, Trash2, Edit2, Check, X,
-  LogOut, Bot, Upload, ChevronLeft, Menu, UserCircle
+  LogOut, Bot, Upload, ChevronLeft, Menu, UserCircle, Zap
 } from 'lucide-react';
 import UploadModal from './UploadModal.jsx';
 import { assetUrl } from '../lib/utils.js';
 
 export default function Sidebar({ onNewChat }) {
   const navigate = useNavigate();
-  const { conversations, activeConversationId, loadConversation, deleteConversation, renameConversation } = useChatStore();
+  const { conversations, activeConversationId, loadConversation, deleteConversation, renameConversation, setShowBuyCredits } = useChatStore();
   const { user, logout } = useAuthStore();
   const [open, setOpen] = useState(false); // mobile drawer open
   const [editingId, setEditingId] = useState(null);
@@ -159,6 +159,22 @@ export default function Sidebar({ onNewChat }) {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Credits bar */}
+      <div className="px-3 py-2 border-t border-gray-700">
+        <button
+          onClick={() => setShowBuyCredits(true)}
+          className="w-full flex items-center justify-between bg-gray-700/60 hover:bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 transition group"
+        >
+          <div className="flex items-center gap-2">
+            <Zap size={14} className="text-yellow-400" />
+            <span className="text-xs text-gray-300">
+              <span className="font-semibold text-white">{user?.credits ?? 0}</span> credits
+            </span>
+          </div>
+          <span className="text-xs text-green-400 font-medium group-hover:text-green-300">+ Buy</span>
+        </button>
       </div>
 
       {/* User footer */}

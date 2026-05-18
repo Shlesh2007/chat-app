@@ -18,8 +18,10 @@ export const useChatStore = create((set, get) => ({
   isStreaming: false,
   streamingContent: '',
   useRAG: false,
+  showBuyCredits: false,
 
   setUseRAG: (val) => set({ useRAG: val }),
+  setShowBuyCredits: (val) => set({ showBuyCredits: val }),
 
   fetchConversations: async () => {
     try {
@@ -99,6 +101,17 @@ export const useChatStore = create((set, get) => ({
           return;
         }
 
+        // no credits
+        if (response.status === 402 && err.error === 'NO_CREDITS') {
+          set((s) => ({
+            messages: [...s.messages.slice(0, -1)], // remove the optimistic user message
+            isStreaming: false,
+            streamingContent: '',
+            showBuyCredits: true,
+          }));
+          return;
+        }
+
         // spam warning — show in chat bubble
         if (err.error === 'SPAM_DETECTED') {
           set((s) => ({
@@ -157,6 +170,8 @@ export const useChatStore = create((set, get) => ({
                 isStreaming: false,
                 streamingContent: '',
               }));
+              // Sync credits from server (source of truth)
+              useAuthStore.getState().refreshCredits();
               get().fetchConversations();
               return;
             } else if (json.type === 'error') {
@@ -183,6 +198,8 @@ export const useChatStore = create((set, get) => ({
           isStreaming: false,
           streamingContent: '',
         }));
+        // Sync credits from server
+        useAuthStore.getState().refreshCredits();
         get().fetchConversations();
       }
     } catch (err) {

@@ -25,6 +25,15 @@ router.post('/:conversationId/message', authenticate, asyncHandler(async (req, r
   const conversation = convResult.rows[0];
   if (!conversation) return res.status(404).json({ error: 'Conversation not found' });
 
+  // ── Credits check ────────────────────────────────────────────────────────
+  // Everyone needs credits — admin account gets a large pool, not a free pass
+  const credRow = await db.execute({ sql: 'SELECT credits FROM users WHERE id=?', args: [req.user.id] });
+  const credits = Number(credRow.rows[0]?.credits || 0);
+  if (credits <= 0) {
+    return res.status(402).json({ error: 'NO_CREDITS', message: 'You have no credits left. Please purchase more to continue.' });
+  }
+  // ────────────────────────────────────────────────────────────────────────
+
   // ── Spam moderation ──────────────────────────────────────────────────────
   // Skip moderation entirely for the admin account
   if (useGroq() && req.user.email !== ADMIN_EMAIL) {
@@ -134,6 +143,10 @@ Answer clearly and helpfully.${ragContext}`;
 
     const assistantMsgId = uuidv4();
     await db.execute({ sql: 'INSERT INTO messages (id,conversation_id,role,content) VALUES (?,?,?,?)', args: [assistantMsgId, conversationId, 'assistant', fullResponse] });
+
+    // Deduct 1 credit on successful response
+    await db.execute({ sql: 'UPDATE users SET credits = MAX(0, credits - 1) WHERE id=?', args: [req.user.id] });
+
     res.write(`data: ${JSON.stringify({ type: 'done', messageId: assistantMsgId })}\n\n`);
   } catch (err) {
     console.error('Streaming error:', err.message);

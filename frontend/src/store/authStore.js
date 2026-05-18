@@ -23,6 +23,13 @@ export const useAuthStore = create(
 
       updateUser: (updates) => set((s) => ({ user: { ...s.user, ...updates } })),
 
+      refreshCredits: async () => {
+        try {
+          const { data } = await api.get('/payment/credits');
+          set((s) => ({ user: s.user ? { ...s.user, credits: data.credits } : s.user }));
+        } catch {}
+      },
+
       setBlocked: (reason) => set({ blocked: { reason } }),
 
       clearBlocked: () => set({ blocked: null }),

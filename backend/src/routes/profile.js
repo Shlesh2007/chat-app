@@ -73,7 +73,7 @@ const router = express.Router();
 router.get('/', authenticate, asyncHandler(async (req, res) => {
   const db = getDB();
   const result = await db.execute({
-    sql: 'SELECT id,username,email,avatar,auto_delete,created_at FROM users WHERE id=?',
+    sql: 'SELECT id,username,email,avatar,auto_delete,credits,created_at FROM users WHERE id=?',
     args: [req.user.id],
   });
   res.json({ user: result.rows[0] });

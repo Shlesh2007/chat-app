@@ -1,9 +1,9 @@
 // Admin Panel v2
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Users, MessageSquare, BarChart2, Shield, Trash2,
   ShieldOff, ShieldCheck, LogOut, RefreshCw, Key, X,
-  ChevronRight, ChevronLeft, Bot, User, CheckCircle, XCircle, Lock
+  ChevronRight, ChevronLeft, Bot, User, CheckCircle, XCircle, Lock, Zap
 } from 'lucide-react';
 import { backendUrl } from '../lib/utils.js';
 
@@ -193,6 +193,50 @@ function PasswordModal({ user, onClose, onSuccess }) {
   );
 }
 
+function CreditsModal({ user, onClose, onSuccess }) {
+  const [amount, setAmount] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const n = parseInt(amount, 10);
+    if (!n || n < 1 || n > 10000) { setError('Enter a number between 1 and 10000'); return; }
+    setLoading(true); setError('');
+    try {
+      const data = await adminFetch(`/users/${user.id}/credits`, { method: 'PATCH', body: JSON.stringify({ credits: n }) });
+      onSuccess(`Added ${n} credits to ${user.username} (now ${data.credits})`);
+      onClose();
+    } catch (err) { setError(err.message); }
+    finally { setLoading(false); }
+  };
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-sm p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="font-semibold text-white flex items-center gap-2"><Zap size={16} className="text-yellow-400" /> Add Credits</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-white"><X size={18} /></button>
+        </div>
+        <p className="text-sm text-gray-400 mb-1">Add credits to <span className="text-white font-medium">{user.username}</span></p>
+        <p className="text-xs text-gray-500 mb-4">Current balance: <span className="text-yellow-400 font-medium">⚡ {user.credits ?? 0}</span></p>
+        {error && <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm px-3 py-2 rounded-lg mb-3">{error}</div>}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)}
+            placeholder="Credits to add (e.g. 100)" min="1" max="10000" autoFocus
+            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500" />
+          <div className="flex gap-3">
+            <button type="submit" disabled={loading}
+              className="flex-1 bg-yellow-600 hover:bg-yellow-500 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-lg transition">
+              {loading ? 'Adding...' : 'Add Credits'}
+            </button>
+            <button type="button" onClick={onClose}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm py-2.5 rounded-lg transition">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function UserDetail({ user, onBack }) {
   const [conversations, setConversations] = useState([]);
   const [selectedConv, setSelectedConv] = useState(null);
@@ -346,6 +390,7 @@ function AdminDashboard({ onLogout }) {
   const [msg, setMsg] = useState('');
   const [pwdUser, setPwdUser] = useState(null);
   const [blockUser, setBlockUser] = useState(null);
+  const [creditsUser, setCreditsUser] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
 
   const load = async () => {
@@ -412,6 +457,15 @@ function AdminDashboard({ onLogout }) {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {pwdUser && <PasswordModal user={pwdUser} onClose={() => setPwdUser(null)} onSuccess={(m) => { notify(m); setPwdUser(null); }} />}
+      {creditsUser && (
+        <CreditsModal user={creditsUser} onClose={() => setCreditsUser(null)}
+          onSuccess={(m) => {
+            notify(m);
+            // refresh user list to show updated credits
+            load();
+            setCreditsUser(null);
+          }} />
+      )}
       {blockUser && (
         <BlockModal user={blockUser} onClose={() => setBlockUser(null)}
           onSuccess={(m) => {
@@ -475,6 +529,7 @@ function AdminDashboard({ onLogout }) {
                       <th className="text-left px-5 py-3 hidden md:table-cell">Email</th>
                       <th className="text-left px-5 py-3 hidden lg:table-cell">Joined</th>
                       <th className="text-left px-5 py-3">Status</th>
+                      <th className="text-left px-5 py-3 hidden md:table-cell">Credits</th>
                       <th className="text-left px-5 py-3 hidden md:table-cell">Spam</th>
                       <th className="text-right px-5 py-3">Actions</th>
                     </tr>
@@ -499,6 +554,9 @@ function AdminDashboard({ onLogout }) {
                           </span>
                         </td>
                         <td className="px-5 py-3 hidden md:table-cell">
+                          <span className="text-xs font-medium text-yellow-400">⚡ {u.credits ?? 0}</span>
+                        </td>
+                        <td className="px-5 py-3 hidden md:table-cell">
                           {Number(u.spam_count) > 0 ? (
                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${
                               Number(u.spam_count) >= 2
@@ -514,6 +572,7 @@ function AdminDashboard({ onLogout }) {
                         <td className="px-5 py-3">
                           <div className="flex items-center justify-end gap-2">
                             <button onClick={() => setPwdUser(u)} className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-900/30 transition" title="Reset password"><Key size={15} /></button>
+                            <button onClick={() => setCreditsUser(u)} className="p-1.5 rounded-lg text-yellow-400 hover:bg-yellow-900/30 transition" title="Add credits"><Zap size={15} /></button>
                             <button onClick={() => handleBlock(u.id, u.is_blocked)}
                               className={`p-1.5 rounded-lg transition ${u.is_blocked ? 'text-red-400 hover:bg-green-900/30 hover:text-green-400' : 'text-gray-400 hover:bg-red-900/30 hover:text-red-400'}`}
                               title={u.is_blocked ? 'Click to unblock' : 'Click to block'}>
@@ -524,7 +583,7 @@ function AdminDashboard({ onLogout }) {
                         </td>
                       </tr>
                     ))}
-                    {filtered.length === 0 && <tr><td colSpan={6} className="text-center py-8 text-gray-500">No users found</td></tr>}
+                    {filtered.length === 0 && <tr><td colSpan={7} className="text-center py-8 text-gray-500">No users found</td></tr>}
                   </tbody>
                 </table>
               </div>
