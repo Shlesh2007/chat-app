@@ -423,7 +423,13 @@ function AdminDashboard({ onLogout }) {
 }
 
 export default function AdminPage() {
-  const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem(ADMIN_KEY));
+  const [loggedIn, setLoggedIn] = useState(false); // always start logged out
+
+  // Clear admin token on every page load — always require fresh login
+  useEffect(() => {
+    localStorage.removeItem(ADMIN_KEY);
+  }, []);
+
   const handleLogout = () => { localStorage.removeItem(ADMIN_KEY); setLoggedIn(false); };
   if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />;
   return <AdminDashboard onLogout={handleLogout} />;

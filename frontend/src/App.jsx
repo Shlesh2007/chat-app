@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/authStore.js';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
@@ -21,6 +21,8 @@ function PublicRoute({ children }) {
 
 export default function App() {
   const { token, updateUser } = useAuthStore();
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith('/admin');
 
   useEffect(() => {
     if (!token) return;
@@ -28,6 +30,15 @@ export default function App() {
       .then(({ data }) => updateUser(data.user))
       .catch(() => {});
   }, [token]);
+
+  // Admin route is completely isolated — no BackendWakeup, no user auth
+  if (isAdmin) {
+    return (
+      <Routes>
+        <Route path="/admin" element={<AdminPage />} />
+      </Routes>
+    );
+  }
 
   return (
     <BackendWakeup>
@@ -37,7 +48,6 @@ export default function App() {
         <Route path="/" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
         <Route path="/chat/:conversationId" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-        <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BackendWakeup>
