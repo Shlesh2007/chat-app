@@ -15,7 +15,10 @@ function adminFetch(path, options = {}) {
     ...options,
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...options.headers },
   }).then(async (r) => {
-    const data = await r.json();
+    const text = await r.text();
+    if (!text) throw new Error('Server returned empty response. It may be starting up, please try again.');
+    let data;
+    try { data = JSON.parse(text); } catch { throw new Error('Invalid server response. Please try again.'); }
     if (!r.ok) throw new Error(data.error || 'Request failed');
     return data;
   });
@@ -47,7 +50,13 @@ function AdminLogin({ onLogin }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
-      }).then(async (r) => { const d = await r.json(); if (!r.ok) throw new Error(d.error); return d; });
+      }).then(async (r) => {
+        const text = await r.text();
+        if (!text) throw new Error('Server is starting up, please wait 15 seconds and try again.');
+        const d = JSON.parse(text);
+        if (!r.ok) throw new Error(d.error);
+        return d;
+      });
       localStorage.setItem(ADMIN_KEY, data.token);
       onLogin();
     } catch (err) { setError(err.message); }
@@ -486,8 +495,7 @@ function AdminDashboard({ onLogout }) {
 }
 
 export default function AdminPage() {
-  const [loggedIn, setLoggedIn] = useState(false);
-  useEffect(() => { localStorage.removeItem(ADMIN_KEY); }, []);
+  const [loggedIn, setLoggedIn] = useState(() => !!localStorage.getItem(ADMIN_KEY));
   const handleLogout = () => { localStorage.removeItem(ADMIN_KEY); setLoggedIn(false); };
   if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />;
   return <AdminDashboard onLogout={handleLogout} />;
