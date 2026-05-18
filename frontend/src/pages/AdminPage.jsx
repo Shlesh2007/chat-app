@@ -1,3 +1,4 @@
+// Admin Panel v2
 import React, { useState, useEffect } from 'react';
 import {
   Users, MessageSquare, BarChart2, Shield, Trash2,
