@@ -37,6 +37,7 @@ router.get('/users', adminAuth, asyncHandler(async (req, res) => {
   const result = await db.execute(`
     SELECT id, username, email, avatar,
       COALESCE(is_blocked, 0) as is_blocked,
+      COALESCE(spam_count, 0) as spam_count,
       created_at
     FROM users
     ORDER BY created_at DESC
@@ -47,22 +48,20 @@ router.get('/users', adminAuth, asyncHandler(async (req, res) => {
 // GET /api/admin/stats — overall stats
 router.get('/stats', adminAuth, asyncHandler(async (req, res) => {
   const db = getDB();
-  const [users, convs, msgs] = await Promise.all([
-    db.execute('SELECT COUNT(*) as count FROM users'),
-    db.execute('SELECT COUNT(*) as count FROM conversations'),
-    db.execute('SELECT COUNT(*) as count FROM messages'),
-  ]);
-  let blockedCount = 0;
-  try {
-    const b = await db.execute('SELECT COUNT(*) as count FROM users WHERE is_blocked=1');
-    blockedCount = b.rows[0].count;
-  } catch {}
-
+  // single query instead of 4 round trips
+  const result = await db.execute(`
+    SELECT
+      (SELECT COUNT(*) FROM users) as totalUsers,
+      (SELECT COUNT(*) FROM conversations) as totalConversations,
+      (SELECT COUNT(*) FROM messages) as totalMessages,
+      (SELECT COUNT(*) FROM users WHERE is_blocked=1) as blockedUsers
+  `);
+  const row = result.rows[0];
   res.json({
-    totalUsers: users.rows[0].count,
-    totalConversations: convs.rows[0].count,
-    totalMessages: msgs.rows[0].count,
-    blockedUsers: blockedCount,
+    totalUsers: row.totalUsers,
+    totalConversations: row.totalConversations,
+    totalMessages: row.totalMessages,
+    blockedUsers: row.blockedUsers,
   });
 }));
 
@@ -77,7 +76,7 @@ router.patch('/users/:id/block', adminAuth, asyncHandler(async (req, res) => {
 // PATCH /api/admin/users/:id/unblock — unblock a user
 router.patch('/users/:id/unblock', adminAuth, asyncHandler(async (req, res) => {
   const db = getDB();
-  await db.execute({ sql: 'UPDATE users SET is_blocked=0, block_reason=NULL WHERE id=?', args: [req.params.id] });
+  await db.execute({ sql: 'UPDATE users SET is_blocked=0, block_reason=NULL, spam_count=0 WHERE id=?', args: [req.params.id] });
   res.json({ success: true, message: 'User unblocked' });
 }));
 
@@ -135,7 +134,7 @@ router.patch('/feedbacks/:id/accept', adminAuth, asyncHandler(async (req, res) =
   if (!fb.rows[0]) return res.status(404).json({ error: 'Feedback not found' });
 
   await db.execute({ sql: "UPDATE feedbacks SET status='accepted', admin_reply=? WHERE id=?", args: [reply, req.params.id] });
-  await db.execute({ sql: 'UPDATE users SET is_blocked=0, block_reason=NULL WHERE id=?', args: [fb.rows[0].user_id] });
+  await db.execute({ sql: 'UPDATE users SET is_blocked=0, block_reason=NULL, spam_count=0 WHERE id=?', args: [fb.rows[0].user_id] });
   res.json({ success: true });
 }));
 
@@ -158,6 +157,16 @@ router.get('/users/:id/conversations', adminAuth, asyncHandler(async (req, res) 
     args: [req.params.id],
   });
   res.json({ conversations: result.rows });
+}));
+
+// GET /api/admin/users/:id/spam-logs
+router.get('/users/:id/spam-logs', adminAuth, asyncHandler(async (req, res) => {
+  const db = getDB();
+  const result = await db.execute({
+    sql: 'SELECT * FROM spam_logs WHERE user_id=? ORDER BY created_at DESC',
+    args: [req.params.id],
+  });
+  res.json({ logs: result.rows });
 }));
 
 // GET /api/admin/conversations/:id/messages

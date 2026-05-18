@@ -70,6 +70,14 @@ export async function initDB() {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
+  await _db.execute(`CREATE TABLE IF NOT EXISTS spam_logs (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    message TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
   // Indexes — wrapped in try/catch since they may already exist
   const indexes = [
     'CREATE INDEX IF NOT EXISTS idx_conv_user ON conversations(user_id)',
@@ -85,6 +93,7 @@ export async function initDB() {
     'ALTER TABLE users ADD COLUMN is_blocked INTEGER DEFAULT 0',
     'ALTER TABLE users ADD COLUMN last_seen DATETIME DEFAULT NULL',
     'ALTER TABLE users ADD COLUMN block_reason TEXT DEFAULT NULL',
+    'ALTER TABLE users ADD COLUMN spam_count INTEGER DEFAULT 0',
   ];
   for (const sql of migrations) {
     try { await _db.execute(sql); } catch {} // ignore if column already exists

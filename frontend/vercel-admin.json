@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/shlesh-admin-2025" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

@@ -8,23 +8,30 @@ export default function BackendWakeup({ children }) {
   useEffect(() => {
     let attempts = 0;
     const maxAttempts = 10;
+    let cancelled = false;
 
     const ping = async () => {
+      if (cancelled) return;
       try {
-        await api.get('/health', { timeout: 5000 });
-        setReady(true);
+        await api.get('/health', { timeout: 4000 });
+        if (!cancelled) setReady(true);
       } catch {
+        if (cancelled) return;
         attempts++;
+        // Only show "starting up" message after 2 failed attempts (~8s)
+        // so a normal fast load never shows it
+        if (attempts >= 2) setWaking(true);
         if (attempts < maxAttempts) {
-          setWaking(true);
           setTimeout(ping, 3000);
         } else {
+          // Give up waiting — show the app anyway
           setReady(true);
         }
       }
     };
 
     ping();
+    return () => { cancelled = true; };
   }, []);
 
   if (!ready) {

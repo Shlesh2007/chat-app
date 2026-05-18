@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/authStore.js';
 import LoginPage from './pages/LoginPage.jsx';
@@ -20,38 +20,49 @@ function PublicRoute({ children }) {
   return !token ? children : <Navigate to="/" replace />;
 }
 
+// Set up global interceptors once — outside component so they never re-register
+let interceptorId = null;
+function setupInterceptor() {
+  if (interceptorId !== null) return;
+  interceptorId = api.interceptors.response.use(
+    (res) => res,
+    (err) => {
+      if (err.response?.status === 403 && err.response?.data?.error === 'BLOCKED') {
+        useAuthStore.getState().setBlocked(err.response.data.reason || 'Your account has been suspended.');
+      }
+      return Promise.reject(err);
+    }
+  );
+}
+setupInterceptor();
+
 export default function App() {
-  const { token, updateUser, logout } = useAuthStore();
+  const { token, updateUser, setBlocked, clearBlocked, blocked } = useAuthStore();
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
-  const [blocked, setBlocked] = useState(null); // { reason }
 
+  // On login — check if already blocked
   useEffect(() => {
-    if (!token) { setBlocked(null); return; }
+    if (!token) return;
     api.get('/profile')
       .then(({ data }) => {
         updateUser(data.user);
-        setBlocked(null);
+        // don't touch blocked state here — interceptor handles it
       })
       .catch((err) => {
         if (err.response?.status === 403 && err.response?.data?.error === 'BLOCKED') {
-          setBlocked({ reason: err.response.data.reason });
+          setBlocked(err.response.data.reason || 'Your account has been suspended.');
         }
       });
   }, [token]);
 
-  // Intercept all 403 BLOCKED responses globally
+  // Listen for BLOCKED from raw fetch (chat stream uses fetch not axios)
   useEffect(() => {
-    const interceptor = api.interceptors.response.use(
-      (res) => res,
-      (err) => {
-        if (err.response?.status === 403 && err.response?.data?.error === 'BLOCKED') {
-          setBlocked({ reason: err.response.data.reason });
-        }
-        return Promise.reject(err);
-      }
-    );
-    return () => api.interceptors.response.eject(interceptor);
+    const handleUserBlocked = (e) => {
+      setBlocked(e.detail?.reason || 'You have been blocked due to policy violations.');
+    };
+    window.addEventListener('user-blocked', handleUserBlocked);
+    return () => window.removeEventListener('user-blocked', handleUserBlocked);
   }, []);
 
   // Admin route — completely isolated
@@ -63,9 +74,9 @@ export default function App() {
     );
   }
 
-  // Blocked user screen
+  // Blocked — stays until explicitly cleared by onUnblocked
   if (token && blocked) {
-    return <BlockedPage reason={blocked.reason} onUnblocked={() => setBlocked(null)} />;
+    return <BlockedPage reason={blocked.reason} onUnblocked={clearBlocked} />;
   }
 
   return (

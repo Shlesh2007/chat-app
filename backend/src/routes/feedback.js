@@ -42,9 +42,21 @@ router.post('/', asyncHandler(async (req, res) => {
 // GET /api/feedback/status/:userId — check appeal status
 router.get('/status/:userId', asyncHandler(async (req, res) => {
   const db = getDB();
+
+  // First check if user is actually still blocked
+  const userResult = await db.execute({
+    sql: 'SELECT is_blocked FROM users WHERE id=?',
+    args: [req.params.userId],
+  });
+  const user = userResult.rows[0];
+
+  // If user is not blocked, their appeal is irrelevant — return none
+  if (!user || !user.is_blocked) return res.json({ status: 'none' });
+
+  // User is blocked — return their latest appeal status
   const result = await db.execute({
-    sql: 'SELECT status, admin_reply, created_at FROM feedbacks WHERE user_id=? ORDER BY created_at DESC LIMIT 1',
-    args: [req.params.userId]
+    sql: "SELECT status, admin_reply, created_at FROM feedbacks WHERE user_id=? ORDER BY created_at DESC LIMIT 1",
+    args: [req.params.userId],
   });
   const feedback = result.rows[0];
   if (!feedback) return res.json({ status: 'none' });

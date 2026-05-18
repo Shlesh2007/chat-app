@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChatStore } from '../store/chatStore.js';
 import { useAuthStore } from '../store/authStore.js';
@@ -17,6 +17,8 @@ export default function Sidebar({ onNewChat }) {
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [showUpload, setShowUpload] = useState(false);
+  const logoTapCount = useRef(0);
+  const logoTapTimer = useRef(null);
 
   // Close sidebar on mobile when navigating
   const handleSelect = (id) => {
@@ -54,6 +56,19 @@ export default function Sidebar({ onNewChat }) {
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
+  const handleLogoTap = () => {
+    logoTapCount.current += 1;
+    clearTimeout(logoTapTimer.current);
+    if (logoTapCount.current >= 5) {
+      logoTapCount.current = 0;
+      navigate('/admin');
+      setOpen(false);
+    } else {
+      // reset count if no tap within 2 seconds
+      logoTapTimer.current = setTimeout(() => { logoTapCount.current = 0; }, 2000);
+    }
+  };
+
   // Close on outside tap (mobile)
   useEffect(() => {
     if (!open) return;
@@ -72,7 +87,7 @@ export default function Sidebar({ onNewChat }) {
     <div id="sidebar" className="w-72 bg-gray-800 border-r border-gray-700 flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b border-gray-700 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" onClick={handleLogoTap} style={{ cursor: 'default' }}>
           <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
             <Bot size={18} className="text-white" />
           </div>

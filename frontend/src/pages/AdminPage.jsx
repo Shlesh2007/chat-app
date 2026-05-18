@@ -7,6 +7,13 @@ import {
 } from 'lucide-react';
 import { backendUrl } from '../lib/utils.js';
 
+const assetUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const BACKEND = import.meta.env.VITE_BACKEND_URL || '';
+  return `${BACKEND}${path}`;
+};
+
 const ADMIN_KEY = 'admin_token';
 
 function adminFetch(path, options = {}) {
@@ -53,8 +60,9 @@ function AdminLogin({ onLogin }) {
       }).then(async (r) => {
         const text = await r.text();
         if (!text) throw new Error('Server is starting up, please wait 15 seconds and try again.');
-        const d = JSON.parse(text);
-        if (!r.ok) throw new Error(d.error);
+        let d;
+        try { d = JSON.parse(text); } catch { throw new Error('Invalid server response. Please try again.'); }
+        if (!r.ok) throw new Error(d.error || `Request failed (${r.status})`);
         return d;
       });
       localStorage.setItem(ADMIN_KEY, data.token);
@@ -191,12 +199,18 @@ function UserDetail({ user, onBack }) {
   const [messages, setMessages] = useState([]);
   const [loadingConvs, setLoadingConvs] = useState(true);
   const [loadingMsgs, setLoadingMsgs] = useState(false);
+  const [spamLogs, setSpamLogs] = useState([]);
+  const [detailTab, setDetailTab] = useState('conversations'); // 'conversations' | 'spam'
 
   useEffect(() => {
     adminFetch(`/users/${user.id}/conversations`)
       .then((d) => setConversations(d.conversations))
       .catch(() => {})
       .finally(() => setLoadingConvs(false));
+
+    adminFetch(`/users/${user.id}/spam-logs`)
+      .then((d) => setSpamLogs(d.logs))
+      .catch(() => {});
   }, [user.id]);
 
   const loadMessages = async (conv) => {
@@ -212,13 +226,67 @@ function UserDetail({ user, onBack }) {
       </button>
       <div className="flex items-center gap-3 mb-6">
         {user.avatar
-          ? <img src={user.avatar} alt="" className="w-12 h-12 rounded-full object-cover" />
+          ? <img src={assetUrl(user.avatar)} alt="" className="w-12 h-12 rounded-full object-cover" />
           : <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-lg font-bold text-white">{user.username?.[0]?.toUpperCase()}</div>}
         <div>
           <h2 className="text-xl font-bold text-white">{user.username}</h2>
           <p className="text-gray-400 text-sm">{user.email}</p>
         </div>
+        {Number(user.spam_count) > 0 && (
+          <span className={`ml-2 text-xs px-2 py-1 rounded-full font-medium border ${
+            Number(user.spam_count) >= 2 ? 'bg-red-900/50 text-red-400 border-red-800' : 'bg-yellow-900/50 text-yellow-400 border-yellow-800'
+          }`}>⚠️ {user.spam_count} spam strike{Number(user.spam_count) !== 1 ? 's' : ''}</span>
+        )}
       </div>
+
+      {/* Sub-tabs */}
+      <div className="flex gap-2 border-b border-gray-700 mb-4">
+        <button onClick={() => setDetailTab('conversations')}
+          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition ${detailTab === 'conversations' ? 'bg-gray-800 text-white border border-b-0 border-gray-700' : 'text-gray-400 hover:text-white'}`}>
+          Conversations ({conversations.length})
+        </button>
+        <button onClick={() => setDetailTab('spam')}
+          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition flex items-center gap-2 ${detailTab === 'spam' ? 'bg-gray-800 text-white border border-b-0 border-gray-700' : 'text-gray-400 hover:text-white'}`}>
+          Spam Logs
+          {spamLogs.length > 0 && (
+            <span className="bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{spamLogs.length}</span>
+          )}
+        </button>
+      </div>
+
+      {/* Spam logs tab */}
+      {detailTab === 'spam' && (
+        <div className="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-700">
+            <h3 className="font-semibold text-white text-sm">Spam Strike History ({spamLogs.length})</h3>
+          </div>
+          {spamLogs.length === 0 ? (
+            <div className="p-6 text-gray-500 text-sm text-center">No spam strikes recorded</div>
+          ) : (
+            <div className="divide-y divide-gray-700">
+              {spamLogs.map((log, i) => (
+                <div key={log.id} className="px-5 py-4">
+                  <div className="flex items-start justify-between gap-4 mb-2">
+                    <span className="text-xs font-medium text-red-400 bg-red-900/30 border border-red-800 px-2 py-0.5 rounded-full">
+                      Strike #{spamLogs.length - i}
+                    </span>
+                    <span className="text-xs text-gray-500">{fmt(log.created_at)}</span>
+                  </div>
+                  <p className="text-sm text-gray-300 bg-gray-700/50 rounded-lg px-3 py-2 mb-2 break-words">
+                    "{log.message}"
+                  </p>
+                  <p className="text-xs text-yellow-400">
+                    🤖 Reason: <span className="text-gray-300">{log.reason}</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Conversations tab */}
+      {detailTab === 'conversations' && (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-700">
@@ -263,6 +331,7 @@ function UserDetail({ user, onBack }) {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }
@@ -303,7 +372,7 @@ function AdminDashboard({ onLogout }) {
       try {
         await adminFetch(`/users/${id}/unblock`, { method: 'PATCH' });
         notify('User unblocked');
-        setUsers(prev => prev.map(u => u.id === id ? { ...u, is_blocked: 0 } : u));
+        setUsers(prev => prev.map(u => u.id === id ? { ...u, is_blocked: 0, spam_count: 0 } : u));
         setStats(prev => prev ? { ...prev, blockedUsers: Math.max(0, Number(prev.blockedUsers) - 1) } : prev);
       } catch (err) {
         notify('Failed to unblock: ' + err.message);
@@ -406,6 +475,7 @@ function AdminDashboard({ onLogout }) {
                       <th className="text-left px-5 py-3 hidden md:table-cell">Email</th>
                       <th className="text-left px-5 py-3 hidden lg:table-cell">Joined</th>
                       <th className="text-left px-5 py-3">Status</th>
+                      <th className="text-left px-5 py-3 hidden md:table-cell">Spam</th>
                       <th className="text-right px-5 py-3">Actions</th>
                     </tr>
                   </thead>
@@ -415,7 +485,7 @@ function AdminDashboard({ onLogout }) {
                         <td className="px-5 py-3">
                           <button onClick={() => setSelectedUser(u)} className="flex items-center gap-2 hover:text-green-400 transition">
                             {u.avatar
-                              ? <img src={u.avatar} alt="" className="w-7 h-7 rounded-full object-cover" />
+                              ? <img src={assetUrl(u.avatar)} alt="" className="w-7 h-7 rounded-full object-cover" />
                               : <div className="w-7 h-7 bg-green-600 rounded-full flex items-center justify-center text-xs font-bold text-white">{u.username?.[0]?.toUpperCase()}</div>}
                             <span className="font-medium text-white">{u.username}</span>
                             <ChevronRight size={13} className="text-gray-500" />
@@ -427,6 +497,19 @@ function AdminDashboard({ onLogout }) {
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${u.is_blocked ? 'bg-red-900/50 text-red-400 border border-red-800' : 'bg-green-900/50 text-green-400 border border-green-800'}`}>
                             {u.is_blocked ? 'Blocked' : 'Active'}
                           </span>
+                        </td>
+                        <td className="px-5 py-3 hidden md:table-cell">
+                          {Number(u.spam_count) > 0 ? (
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${
+                              Number(u.spam_count) >= 2
+                                ? 'bg-red-900/50 text-red-400 border-red-800'
+                                : 'bg-yellow-900/50 text-yellow-400 border-yellow-800'
+                            }`}>
+                              ⚠️ {u.spam_count} strike{Number(u.spam_count) !== 1 ? 's' : ''}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-600">—</span>
+                          )}
                         </td>
                         <td className="px-5 py-3">
                           <div className="flex items-center justify-end gap-2">
@@ -441,7 +524,7 @@ function AdminDashboard({ onLogout }) {
                         </td>
                       </tr>
                     ))}
-                    {filtered.length === 0 && <tr><td colSpan={5} className="text-center py-8 text-gray-500">No users found</td></tr>}
+                    {filtered.length === 0 && <tr><td colSpan={6} className="text-center py-8 text-gray-500">No users found</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -480,7 +563,7 @@ function AdminDashboard({ onLogout }) {
                             if (reply === null) return;
                             await adminFetch(`/feedbacks/${f.id}/accept`, { method: 'PATCH', body: JSON.stringify({ reply }) });
                             notify(`${f.username} unblocked`);
-                            setUsers(prev => prev.map(u => u.id === f.user_id ? { ...u, is_blocked: 0 } : u));
+                            setUsers(prev => prev.map(u => u.id === f.user_id ? { ...u, is_blocked: 0, spam_count: 0 } : u));
                             load();
                           }} className="flex items-center gap-1.5 bg-green-600 hover:bg-green-500 text-white text-xs font-medium px-3 py-2 rounded-lg transition">
                             <CheckCircle size={14} /> Accept
@@ -509,7 +592,13 @@ function AdminDashboard({ onLogout }) {
 }
 
 export default function AdminPage() {
-  const [loggedIn, setLoggedIn] = useState(() => !!localStorage.getItem(ADMIN_KEY));
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  // Always require fresh login on every visit — clear any stored token
+  useEffect(() => {
+    localStorage.removeItem(ADMIN_KEY);
+  }, []);
+
   const handleLogout = () => { localStorage.removeItem(ADMIN_KEY); setLoggedIn(false); };
   if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />;
   return <AdminDashboard onLogout={handleLogout} />;

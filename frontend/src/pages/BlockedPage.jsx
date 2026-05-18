@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldOff, Send, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { ShieldOff, Send, CheckCircle, XCircle, Clock, Shield } from 'lucide-react';
 import { useAuthStore } from '../store/authStore.js';
 import { backendUrl } from '../lib/utils.js';
+import { useNavigate } from 'react-router-dom';
+
+const ADMIN_EMAIL = 'shleshdarji317@gmail.com';
 
 export default function BlockedPage({ reason, onUnblocked }) {
   const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
   const [message, setMessage] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -126,6 +130,17 @@ export default function BlockedPage({ reason, onUnblocked }) {
         >
           Sign out
         </button>
+
+        {/* Emergency admin access — only visible to admin email */}
+        {user?.email === ADMIN_EMAIL && (
+          <button
+            onClick={() => navigate('/admin')}
+            className="w-full mt-2 flex items-center justify-center gap-2 text-red-400 hover:text-red-300 text-sm py-2 transition"
+          >
+            <Shield size={14} />
+            Open Admin Panel
+          </button>
+        )}
       </div>
     </div>
   );

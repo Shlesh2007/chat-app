@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import api from '../lib/api.js';
 import { backendUrl } from '../lib/utils.js';
+import { useAuthStore } from './authStore.js';
 
 function getToken() {
   try {
@@ -21,8 +22,12 @@ export const useChatStore = create((set, get) => ({
   setUseRAG: (val) => set({ useRAG: val }),
 
   fetchConversations: async () => {
-    const { data } = await api.get('/conversations');
-    set({ conversations: data.conversations });
+    try {
+      const { data } = await api.get('/conversations');
+      set({ conversations: data.conversations });
+    } catch {
+      // interceptor handles 401/403 globally, ignore other errors silently
+    }
   },
 
   createConversation: async () => {
@@ -86,6 +91,32 @@ export const useChatStore = create((set, get) => ({
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({ error: 'Request failed' }));
+
+        // auto-blocked after spam strikes
+        if (response.status === 403 && err.error === 'BLOCKED') {
+          set({ isStreaming: false, streamingContent: '' });
+          useAuthStore.getState().setBlocked(err.reason || 'You have been blocked due to policy violations.');
+          return;
+        }
+
+        // spam warning — show in chat bubble
+        if (err.error === 'SPAM_DETECTED') {
+          set((s) => ({
+            messages: [
+              ...s.messages,
+              {
+                id: `warn-${Date.now()}`,
+                role: 'assistant',
+                content: `⚠️ **Message blocked:** ${err.warning}`,
+                created_at: new Date().toISOString(),
+              },
+            ],
+            isStreaming: false,
+            streamingContent: '',
+          }));
+          return;
+        }
+
         throw new Error(err.error || 'Request failed');
       }
 

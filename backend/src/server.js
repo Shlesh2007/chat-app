@@ -28,7 +28,30 @@ app.use(cors({
   origin: (origin, cb) => cb(null, true), // allow all in production (Vercel + local)
   credentials: true,
 }));
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000 }));
+
+// General rate limit — returns JSON so clients can parse it
+const generalLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => res.status(429).json({ error: 'Too many requests, please try again later.' }),
+});
+
+// Admin rate limit — more lenient, separate window
+const adminLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => res.status(429).json({ error: 'Too many requests, please try again later.' }),
+});
+
+app.use('/api/admin', adminLimit);
+app.use(generalLimit);
+
+// Health check — no rate limit, always fast
+app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
@@ -41,8 +64,6 @@ app.use('/api/image', imageRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/feedback', feedbackRoutes);
-
-app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 app.use(errorHandler);
 
 initDB().then(() => {
