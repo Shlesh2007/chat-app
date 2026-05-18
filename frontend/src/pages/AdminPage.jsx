@@ -296,9 +296,13 @@ function AdminDashboard({ onLogout }) {
     if (!isBlocked) {
       setBlockUser(users.find(u => u.id === id));
     } else {
-      await adminFetch(`/users/${id}/unblock`, { method: 'PATCH' });
-      notify('User unblocked');
-      setUsers(prev => prev.map(u => u.id === id ? { ...u, is_blocked: 0 } : u));
+      try {
+        await adminFetch(`/users/${id}/unblock`, { method: 'PATCH' });
+        notify('User unblocked');
+        setUsers(prev => prev.map(u => u.id === id ? { ...u, is_blocked: 0 } : u));
+      } catch (err) {
+        notify('Failed to unblock: ' + err.message);
+      }
     }
   };
 
