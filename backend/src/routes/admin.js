@@ -138,4 +138,14 @@ router.get('/users/:id/conversations', adminAuth, asyncHandler(async (req, res) 
   res.json({ conversations: result.rows });
 }));
 
+// GET /api/admin/conversations/:id/messages
+router.get('/conversations/:id/messages', adminAuth, asyncHandler(async (req, res) => {
+  const db = getDB();
+  const result = await db.execute({
+    sql: 'SELECT * FROM messages WHERE conversation_id=? ORDER BY created_at ASC',
+    args: [req.params.id],
+  });
+  res.json({ messages: result.rows });
+}));
+
 export default router;
