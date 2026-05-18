@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Users, MessageSquare, BarChart2, Shield, Trash2,
   Unlock, Lock, LogOut, RefreshCw, Key, X,
-  ChevronRight, ChevronLeft, Bot, User
+  ChevronRight, ChevronLeft, Bot, User, Bell, CheckCircle, XCircle
 } from 'lucide-react';
 import { backendUrl } from '../lib/utils.js';
 
@@ -307,6 +307,8 @@ const parseUTC = (d) => {
 function AdminDashboard({ onLogout }) {
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [tab, setTab] = useState('users'); // 'users' | 'feedbacks'
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [msg, setMsg] = useState('');
@@ -317,9 +319,14 @@ function AdminDashboard({ onLogout }) {
   const load = async () => {
     setLoading(true);
     try {
-      const [s, u] = await Promise.all([adminFetch('/stats'), adminFetch('/users')]);
+      const [s, u, f] = await Promise.all([
+        adminFetch('/stats'),
+        adminFetch('/users'),
+        adminFetch('/feedbacks'),
+      ]);
       setStats(s);
       setUsers(u.users);
+      setFeedbacks(f.feedbacks);
     } catch (err) {
       if (err.message.includes('Unauthorized') || err.message.includes('Invalid')) onLogout();
     } finally { setLoading(false); }
@@ -426,7 +433,25 @@ function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        <div className="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden">
+        {/* Tabs */}
+        <div className="flex gap-2 border-b border-gray-700 pb-0">
+          <button onClick={() => setTab('users')}
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition ${tab === 'users' ? 'bg-gray-800 text-white border border-b-0 border-gray-700' : 'text-gray-400 hover:text-white'}`}>
+            Users ({users.length})
+          </button>
+          <button onClick={() => setTab('feedbacks')}
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition flex items-center gap-2 ${tab === 'feedbacks' ? 'bg-gray-800 text-white border border-b-0 border-gray-700' : 'text-gray-400 hover:text-white'}`}>
+            Appeals
+            {feedbacks.filter(f => f.status === 'pending').length > 0 && (
+              <span className="bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {feedbacks.filter(f => f.status === 'pending').length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Users tab */}
+        {tab === 'users' && (
           <div className="px-5 py-4 border-b border-gray-700 flex items-center justify-between gap-4 flex-wrap">
             <h2 className="font-semibold text-white">All Users ({users.length})</h2>
             <input value={search} onChange={(e) => setSearch(e.target.value)}
@@ -500,6 +525,74 @@ function AdminDashboard({ onLogout }) {
             </div>
           )}
         </div>
+        )} {/* end users tab */}
+
+        {/* Feedbacks/Appeals tab */}
+        {tab === 'feedbacks' && (
+          <div className="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-700">
+              <h2 className="font-semibold text-white">User Appeals ({feedbacks.length})</h2>
+            </div>
+            {feedbacks.length === 0 ? (
+              <div className="text-center py-10 text-gray-500">No appeals submitted yet</div>
+            ) : (
+              <div className="divide-y divide-gray-700">
+                {feedbacks.map((f) => (
+                  <div key={f.id} className="p-5">
+                    <div className="flex items-start justify-between gap-4 flex-wrap">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium text-white">{f.username}</span>
+                          <span className="text-xs text-gray-400">{f.email}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            f.status === 'pending' ? 'bg-yellow-900/50 text-yellow-400 border border-yellow-800' :
+                            f.status === 'accepted' ? 'bg-green-900/50 text-green-400 border border-green-800' :
+                            'bg-red-900/50 text-red-400 border border-red-800'
+                          }`}>{f.status}</span>
+                        </div>
+                        <p className="text-gray-300 text-sm bg-gray-700/50 rounded-lg px-3 py-2 mt-2">{f.message}</p>
+                        {f.admin_reply && (
+                          <p className="text-gray-400 text-xs mt-2 italic">Admin reply: {f.admin_reply}</p>
+                        )}
+                      </div>
+                      {f.status === 'pending' && (
+                        <div className="flex gap-2 shrink-0">
+                          <button
+                            onClick={async () => {
+                              const reply = prompt('Accept message to user (or press OK for default):',
+                                'Your appeal has been accepted. You have been unblocked.');
+                              if (reply === null) return;
+                              await adminFetch(`/feedbacks/${f.id}/accept`, { method: 'PATCH', body: JSON.stringify({ reply }) });
+                              notify(`${f.username} unblocked`);
+                              setUsers(prev => prev.map(u => u.id === f.user_id ? { ...u, is_blocked: 0 } : u));
+                              load();
+                            }}
+                            className="flex items-center gap-1.5 bg-green-600 hover:bg-green-500 text-white text-xs font-medium px-3 py-2 rounded-lg transition"
+                          >
+                            <CheckCircle size={14} /> Accept
+                          </button>
+                          <button
+                            onClick={async () => {
+                              const reply = prompt('Rejection message to user (or press OK for default):',
+                                'Your appeal has been reviewed and rejected. You remain blocked.');
+                              if (reply === null) return;
+                              await adminFetch(`/feedbacks/${f.id}/reject`, { method: 'PATCH', body: JSON.stringify({ reply }) });
+                              notify(`${f.username}'s appeal rejected`);
+                              load();
+                            }}
+                            className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-medium px-3 py-2 rounded-lg transition"
+                          >
+                            <XCircle size={14} /> Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

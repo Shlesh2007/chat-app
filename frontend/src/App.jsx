@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/authStore.js';
 import LoginPage from './pages/LoginPage.jsx';
@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage.jsx';
 import ChatPage from './pages/ChatPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
+import BlockedPage from './pages/BlockedPage.jsx';
 import BackendWakeup from './components/BackendWakeup.jsx';
 import api from './lib/api.js';
 
@@ -20,24 +21,51 @@ function PublicRoute({ children }) {
 }
 
 export default function App() {
-  const { token, updateUser } = useAuthStore();
+  const { token, updateUser, logout } = useAuthStore();
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
+  const [blocked, setBlocked] = useState(null); // { reason }
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) { setBlocked(null); return; }
     api.get('/profile')
-      .then(({ data }) => updateUser(data.user))
-      .catch(() => {});
+      .then(({ data }) => {
+        updateUser(data.user);
+        setBlocked(null);
+      })
+      .catch((err) => {
+        if (err.response?.status === 403 && err.response?.data?.error === 'BLOCKED') {
+          setBlocked({ reason: err.response.data.reason });
+        }
+      });
   }, [token]);
 
-  // Admin route is completely isolated — no BackendWakeup, no user auth
+  // Intercept all 403 BLOCKED responses globally
+  useEffect(() => {
+    const interceptor = api.interceptors.response.use(
+      (res) => res,
+      (err) => {
+        if (err.response?.status === 403 && err.response?.data?.error === 'BLOCKED') {
+          setBlocked({ reason: err.response.data.reason });
+        }
+        return Promise.reject(err);
+      }
+    );
+    return () => api.interceptors.response.eject(interceptor);
+  }, []);
+
+  // Admin route — completely isolated
   if (isAdmin) {
     return (
       <Routes>
         <Route path="/admin" element={<AdminPage />} />
       </Routes>
     );
+  }
+
+  // Blocked user screen
+  if (token && blocked) {
+    return <BlockedPage reason={blocked.reason} onUnblocked={() => setBlocked(null)} />;
   }
 
   return (

@@ -13,6 +13,7 @@ import conversationRoutes from './routes/conversations.js';
 import imageRoutes from './routes/image.js';
 import profileRoutes from './routes/profile.js';
 import adminRoutes from './routes/admin.js';
+import feedbackRoutes from './routes/feedback.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { startScheduler } from './services/scheduler.js';
 
@@ -39,6 +40,7 @@ app.use('/api/conversations', conversationRoutes);
 app.use('/api/image', imageRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 app.use(errorHandler);
