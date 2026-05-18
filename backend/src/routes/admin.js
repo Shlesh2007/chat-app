@@ -129,6 +129,38 @@ router.post('/change-password', adminAuth, asyncHandler(async (req, res) => {
   });
 }));
 
+// GET /api/admin/feedbacks — list all pending appeals
+router.get('/feedbacks', adminAuth, asyncHandler(async (req, res) => {
+  const db = getDB();
+  const result = await db.execute(
+    "SELECT * FROM feedbacks ORDER BY created_at DESC"
+  );
+  res.json({ feedbacks: result.rows });
+}));
+
+// PATCH /api/admin/feedbacks/:id/accept — accept appeal, unblock user
+router.patch('/feedbacks/:id/accept', adminAuth, asyncHandler(async (req, res) => {
+  const { reply = 'Your appeal has been accepted. You have been unblocked.' } = req.body;
+  const db = getDB();
+  const fb = await db.execute({ sql: 'SELECT * FROM feedbacks WHERE id=?', args: [req.params.id] });
+  if (!fb.rows[0]) return res.status(404).json({ error: 'Feedback not found' });
+
+  await db.execute({ sql: "UPDATE feedbacks SET status='accepted', admin_reply=? WHERE id=?", args: [reply, req.params.id] });
+  await db.execute({ sql: 'UPDATE users SET is_blocked=0, block_reason=NULL WHERE id=?', args: [fb.rows[0].user_id] });
+  res.json({ success: true });
+}));
+
+// PATCH /api/admin/feedbacks/:id/reject — reject appeal, keep blocked
+router.patch('/feedbacks/:id/reject', adminAuth, asyncHandler(async (req, res) => {
+  const { reply = 'Your appeal has been reviewed and rejected. You remain blocked.' } = req.body;
+  const db = getDB();
+  const fb = await db.execute({ sql: 'SELECT * FROM feedbacks WHERE id=?', args: [req.params.id] });
+  if (!fb.rows[0]) return res.status(404).json({ error: 'Feedback not found' });
+
+  await db.execute({ sql: "UPDATE feedbacks SET status='rejected', admin_reply=? WHERE id=?", args: [reply, req.params.id] });
+  res.json({ success: true });
+}));
+
 // GET /api/admin/users/:id/conversations
 router.get('/users/:id/conversations', adminAuth, asyncHandler(async (req, res) => {
   const db = getDB();

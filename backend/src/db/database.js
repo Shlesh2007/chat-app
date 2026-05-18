@@ -59,6 +59,17 @@ export async function initDB() {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
+  await _db.execute(`CREATE TABLE IF NOT EXISTS feedbacks (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    username TEXT NOT NULL,
+    email TEXT NOT NULL,
+    message TEXT NOT NULL,
+    status TEXT DEFAULT 'pending',
+    admin_reply TEXT DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
   // Indexes — wrapped in try/catch since they may already exist
   const indexes = [
     'CREATE INDEX IF NOT EXISTS idx_conv_user ON conversations(user_id)',
