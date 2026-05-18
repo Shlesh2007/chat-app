@@ -97,26 +97,25 @@ router.patch('/users/:id/password', adminAuth, asyncHandler(async (req, res) => 
   res.json({ success: true, message: 'Password updated' });
 }));
 
-// POST /api/admin/change-password — change admin password (updates in-memory, persists to env on restart)
+// POST /api/admin/change-password — change admin password
 router.post('/change-password', adminAuth, asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
-
   if (currentPassword !== process.env.ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Current password is incorrect' });
   }
   if (!newPassword || newPassword.length < 6) {
     return res.status(400).json({ error: 'New password must be at least 6 characters' });
   }
-
-  // Update in memory for this session
   process.env.ADMIN_PASSWORD = newPassword;
-
   res.json({
     success: true,
-    message: 'Password changed for this session. To make it permanent, update ADMIN_PASSWORD in your Render environment variables.',
-    newPassword, // returned so admin can copy it to Render
+    message: 'Password changed. Update ADMIN_PASSWORD in Render env vars to make it permanent.',
+    newPassword,
   });
 }));
+
+// GET /api/admin/users/:id/conversations
+router.get('/users/:id/conversations', adminAuth, asyncHandler(async (req, res) => {
   const db = getDB();
   const result = await db.execute({
     sql: 'SELECT * FROM conversations WHERE user_id=? ORDER BY updated_at DESC',
