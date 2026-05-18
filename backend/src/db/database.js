@@ -94,6 +94,7 @@ export async function initDB() {
     'ALTER TABLE users ADD COLUMN last_seen DATETIME DEFAULT NULL',
     'ALTER TABLE users ADD COLUMN block_reason TEXT DEFAULT NULL',
     'ALTER TABLE users ADD COLUMN spam_count INTEGER DEFAULT 0',
+    'ALTER TABLE documents ADD COLUMN extracted_text TEXT DEFAULT NULL',
   ];
   for (const sql of migrations) {
     try { await _db.execute(sql); } catch {} // ignore if column already exists
