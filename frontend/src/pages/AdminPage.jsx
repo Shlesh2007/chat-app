@@ -161,7 +161,7 @@ function UserDetail({ user, onBack }) {
     finally { setLoadingMsgs(false); }
   };
 
-  const fmt = (d) => d ? new Date(d).toLocaleString() : '';
+  const fmt = (d) => d ? new Date(d).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
@@ -286,7 +286,7 @@ function AdminDashboard({ onLogout }) {
     u.email?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const fmt = (d) => d ? new Date(d).toLocaleString() : 'Never';
+  const fmt = (d) => d ? new Date(d).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never';
 
   if (selectedUser) {
     return (

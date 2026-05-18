@@ -176,7 +176,7 @@ export default function MessageBubble({ message }) {
             {copied ? <Check size={13} /> : <Copy size={13} />}
           </button>
           <span className="text-xs text-gray-500">
-            {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {new Date(message.created_at).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
       </div>
