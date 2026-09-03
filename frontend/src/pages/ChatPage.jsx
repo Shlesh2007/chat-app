@@ -37,7 +37,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#0b0f19] text-slate-100 overflow-hidden relative">
+    <div className="flex h-screen theme-app-bg overflow-hidden relative">
       {/* Sidebar */}
       <Sidebar onNewChat={handleNewChat} />
 

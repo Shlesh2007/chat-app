@@ -229,8 +229,8 @@ export default function MessageBubble({ message }) {
       <div className={`flex-1 min-w-0 ${isUser ? 'flex flex-col items-end' : ''}`}>
         <div className={`relative max-w-[88%] sm:max-w-[85%] rounded-2xl px-4 py-3 shadow-lg ${
           isUser
-            ? 'bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 text-white rounded-tr-xs shadow-indigo-950/40 font-normal'
-            : 'bg-slate-900/90 text-slate-100 rounded-tl-xs border border-slate-800/90 shadow-slate-950/60 backdrop-blur-md'
+            ? 'theme-user-bubble rounded-tr-xs font-normal'
+            : 'theme-bot-bubble rounded-tl-xs shadow-md backdrop-blur-md'
         }`}>
           {isUser ? (
             <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>

@@ -83,9 +83,9 @@ export default function Sidebar({ onNewChat }) {
   }, [open]);
 
   const sidebarContent = (
-    <div id="sidebar" className="w-72 bg-slate-950/90 backdrop-blur-xl border-r border-slate-800/80 flex flex-col h-full select-none">
+    <div id="sidebar" className="w-72 theme-sidebar-bg backdrop-blur-xl border-r flex flex-col h-full select-none">
       {/* Header */}
-      <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
+      <div className="p-4 border-b border-opacity-20 flex items-center justify-between">
         <div className="flex items-center gap-3 cursor-pointer group" onClick={handleLogoTap}>
           <div className="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-300">
             <Bot size={20} className="text-white" />
@@ -93,10 +93,10 @@ export default function Sidebar({ onNewChat }) {
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-heading font-bold text-white text-base tracking-wide">Chat-App</span>
-              <span className="text-[10px] uppercase font-extrabold tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded">Pro</span>
+              <span className="font-heading font-bold theme-text-heading text-base tracking-wide">Chat-App</span>
+              <span className="text-[10px] uppercase font-extrabold tracking-wider bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-1.5 py-0.5 rounded">Pro</span>
             </div>
-            <p className="text-[11px] text-slate-400 truncate">Powered by Groq & AI</p>
+            <p className="text-[11px] theme-text-muted truncate">Powered by Groq & AI</p>
           </div>
         </div>
         <button onClick={() => setOpen(false)} className="md:hidden text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800/60 transition">

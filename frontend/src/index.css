@@ -6,6 +6,73 @@
   :root {
     --font-heading: 'Outfit', sans-serif;
     --font-sans: 'Plus Jakarta Sans', sans-serif;
+
+    /* Default Cyber Dark Theme */
+    --bg-app: #0b0f19;
+    --bg-sidebar: rgba(15, 23, 42, 0.95);
+    --bg-card: rgba(17, 24, 39, 0.75);
+    --bg-card-hover: rgba(31, 41, 55, 0.85);
+    --bg-input: rgba(17, 24, 39, 0.85);
+    --text-main: #f3f4f6;
+    --text-heading: #ffffff;
+    --text-muted: #9ca3af;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --user-bubble-bg: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    --user-bubble-text: #ffffff;
+    --bot-bubble-bg: rgba(17, 24, 39, 0.9);
+    --bot-bubble-text: #f3f4f6;
+    --grid-color: rgba(255, 255, 255, 0.05);
+  }
+
+  [data-theme="emerald"] {
+    --bg-app: #042f2e;
+    --bg-sidebar: rgba(4, 47, 46, 0.95);
+    --bg-card: rgba(6, 78, 59, 0.75);
+    --bg-card-hover: rgba(6, 95, 70, 0.85);
+    --bg-input: rgba(4, 47, 46, 0.85);
+    --text-main: #ecfdf5;
+    --text-heading: #ffffff;
+    --text-muted: #6ee7b7;
+    --border-color: rgba(16, 185, 129, 0.2);
+    --user-bubble-bg: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+    --user-bubble-text: #ffffff;
+    --bot-bubble-bg: rgba(6, 78, 59, 0.9);
+    --bot-bubble-text: #ecfdf5;
+    --grid-color: rgba(16, 185, 129, 0.08);
+  }
+
+  [data-theme="midnight"] {
+    --bg-app: #0b1329;
+    --bg-sidebar: rgba(11, 19, 41, 0.95);
+    --bg-card: rgba(15, 23, 42, 0.8);
+    --bg-card-hover: rgba(30, 41, 59, 0.85);
+    --bg-input: rgba(11, 19, 41, 0.85);
+    --text-main: #f0f9ff;
+    --text-heading: #ffffff;
+    --text-muted: #7dd3fc;
+    --border-color: rgba(59, 130, 246, 0.2);
+    --user-bubble-bg: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
+    --user-bubble-text: #ffffff;
+    --bot-bubble-bg: rgba(15, 23, 42, 0.9);
+    --bot-bubble-text: #f0f9ff;
+    --grid-color: rgba(59, 130, 246, 0.08);
+  }
+
+  [data-theme="light"] {
+    --bg-app: #f8fafc;
+    --bg-sidebar: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f1f5f9;
+    --bg-input: #ffffff;
+    --text-main: #1e293b;
+    --text-heading: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --user-bubble-bg: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    --user-bubble-text: #ffffff;
+    --bot-bubble-bg: #ffffff;
+    --bot-bubble-text: #0f172a;
+    --grid-color: rgba(99, 102, 241, 0.08);
   }
 
   * {
@@ -14,12 +81,12 @@
 
   body {
     font-family: var(--font-sans);
-    background-color: #0b0f19;
-    color: #f3f4f6;
+    background-color: var(--bg-app);
+    color: var(--text-main);
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -33,7 +100,7 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: rgba(15, 23, 42, 0.6);
+    background: rgba(15, 23, 42, 0.2);
   }
 
   ::-webkit-scrollbar-thumb {
@@ -46,78 +113,36 @@
   }
 }
 
-/* ─────────────────────────────────────────────────────────────
-   THEME STYLING OVERRIDES
-   ───────────────────────────────────────────────────────────── */
-
-/* Emerald Mint Theme */
-[data-theme="emerald"] body {
-  background-color: #042f2e;
-  color: #ecfdf5;
-}
-[data-theme="emerald"] .glass-card {
-  background: rgba(6, 78, 59, 0.75);
-  border-color: rgba(16, 185, 129, 0.2);
-}
-[data-theme="emerald"] .glass-input {
-  background: rgba(4, 47, 46, 0.8);
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
-/* Midnight Sapphire Theme */
-[data-theme="midnight"] body {
-  background-color: #0b1329;
-  color: #f0f9ff;
-}
-[data-theme="midnight"] .glass-card {
-  background: rgba(15, 23, 42, 0.8);
-  border-color: rgba(59, 130, 246, 0.2);
-}
-[data-theme="midnight"] .glass-input {
-  background: rgba(11, 19, 41, 0.85);
-  border-color: rgba(59, 130, 246, 0.3);
-}
-
-/* Crisp Light Theme */
-[data-theme="light"] body {
-  background-color: #f1f5f9;
-  color: #0f172a;
-}
-[data-theme="light"] .glass-card {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(203, 213, 225, 0.8);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-}
-[data-theme="light"] .glass-input {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(203, 213, 225, 1);
-  color: #0f172a;
-}
-[data-theme="light"] .prose-chat {
-  color: #1e293b;
-}
-[data-theme="light"] .prose-chat h1, 
-[data-theme="light"] .prose-chat h2, 
-[data-theme="light"] .prose-chat h3 {
-  color: #0f172a;
-}
-
 @layer utilities {
   .font-heading {
     font-family: var(--font-heading);
   }
 
+  .theme-app-bg {
+    background-color: var(--bg-app);
+    color: var(--text-main);
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  .theme-sidebar-bg {
+    background-color: var(--bg-sidebar);
+    border-color: var(--border-color);
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+  }
+
   .bg-grid-pattern {
-    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-image: radial-gradient(var(--grid-color) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
   .glass-card {
-    background: rgba(17, 24, 39, 0.7);
+    background: var(--bg-card);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
   }
 
   .glass-card-hover {
@@ -125,22 +150,21 @@
   }
 
   .glass-card-hover:hover {
-    background: rgba(31, 41, 55, 0.8);
-    border-color: rgba(99, 102, 241, 0.4);
+    background: var(--bg-card-hover);
     transform: translateY(-2px);
-    box-shadow: 0 12px 30px -10px rgba(99, 102, 241, 0.25);
   }
 
   .glass-input {
-    background: rgba(17, 24, 39, 0.65);
+    background: var(--bg-input);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
   }
 
   .glass-input:focus-within {
     border-color: rgba(99, 102, 241, 0.6);
-    box-shadow: 0 0 20px -3px rgba(99, 102, 241, 0.35), inset 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 20px -3px rgba(99, 102, 241, 0.25);
   }
 
   .gradient-text {
@@ -148,11 +172,31 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
+
+  .theme-text-heading {
+    color: var(--text-heading);
+  }
+
+  .theme-text-muted {
+    color: var(--text-muted);
+  }
+
+  .theme-user-bubble {
+    background: var(--user-bubble-bg);
+    color: var(--user-bubble-text);
+  }
+
+  .theme-bot-bubble {
+    background: var(--bot-bubble-bg);
+    color: var(--bot-bubble-text);
+    border: 1px solid var(--border-color);
+  }
 }
 
 @layer components {
   .prose-chat {
-    @apply text-gray-200 leading-relaxed;
+    color: var(--bot-bubble-text);
+    line-height: 1.6;
   }
 
   .prose-chat p {
@@ -160,7 +204,10 @@
   }
 
   .prose-chat h1, .prose-chat h2, .prose-chat h3 {
-    @apply font-heading font-bold text-white mt-4 mb-2 tracking-tight;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    color: var(--text-heading);
+    @apply mt-4 mb-2 tracking-tight;
   }
 
   .prose-chat h1 { @apply text-xl; }
@@ -181,19 +228,24 @@
   }
 
   .prose-chat blockquote {
-    @apply border-l-4 border-indigo-500/70 bg-indigo-950/20 rounded-r-lg py-2 pl-4 italic text-gray-300 my-3;
+    @apply border-l-4 border-indigo-500/70 bg-indigo-950/20 rounded-r-lg py-2 pl-4 italic my-3;
+    color: var(--text-muted);
   }
 
   .prose-chat table {
-    @apply w-full border-collapse mb-3 overflow-hidden rounded-lg border border-gray-800;
+    @apply w-full border-collapse mb-3 overflow-hidden rounded-lg;
+    border: 1px solid var(--border-color);
   }
 
   .prose-chat th, .prose-chat td {
-    @apply border border-gray-800 px-3.5 py-2.5 text-left text-xs sm:text-sm;
+    @apply px-3.5 py-2.5 text-left text-xs sm:text-sm;
+    border: 1px solid var(--border-color);
   }
 
   .prose-chat th {
-    @apply bg-gray-800/90 font-semibold text-gray-200;
+    background: var(--bg-card-hover);
+    color: var(--text-heading);
+    font-weight: 600;
   }
 
   .prose-chat code:not(pre code) {
@@ -201,7 +253,8 @@
   }
 
   .prose-chat pre {
-    @apply my-3 rounded-xl overflow-hidden border border-gray-700/60 shadow-lg;
+    @apply my-3 rounded-xl overflow-hidden shadow-lg;
+    border: 1px solid var(--border-color);
   }
 }
 

@@ -87,16 +87,16 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] bg-grid-pattern flex flex-col text-slate-100 select-none">
+    <div className="min-h-screen theme-app-bg bg-grid-pattern flex flex-col select-none">
       {/* Top Header */}
-      <div className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md px-6 py-4 flex items-center gap-4 sticky top-0 z-30">
+      <div className="border-b theme-sidebar-bg backdrop-blur-md px-6 py-4 flex items-center gap-4 sticky top-0 z-30">
         <button
           onClick={() => navigate('/')}
           className="text-slate-400 hover:text-white transition p-2 rounded-xl hover:bg-slate-800/60"
         >
           <ArrowLeft size={19} />
         </button>
-        <h1 className="text-base font-heading font-extrabold text-white">Profile Settings</h1>
+        <h1 className="text-base font-heading font-extrabold theme-text-heading">Profile Settings</h1>
       </div>
 
       <div className="flex-1 max-w-xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
