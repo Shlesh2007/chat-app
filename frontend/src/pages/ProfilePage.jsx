@@ -25,9 +25,6 @@ export default function ProfilePage() {
   const handleThemeChange = (themeId) => {
     const updated = applyTheme(themeId);
     setCurrentTheme(updated);
-    const themeName = THEMES.find(t => t.id === themeId)?.name;
-    setSuccess(`Theme updated to ${themeName}`);
-    setTimeout(() => setSuccess(''), 3000);
   };
 
   const handleSave = async () => {
