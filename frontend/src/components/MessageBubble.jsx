@@ -24,22 +24,30 @@ function ImageBlock({ prompt }) {
   const [imageUrl, setImageUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
 
-  const generate = async () => {
+  const generate = async (currentRetry = 0) => {
     setLoading(true);
     setError('');
+    setImageUrl(null);
     try {
-      const { data } = await api.post('/image/generate', { prompt });
+      const { data } = await api.post('/image/generate', { prompt, retry: currentRetry });
       setImageUrl(data.url);
     } catch (err) {
-      setError('Image generation failed. Please try again.');
+      setError('Image server timeout. Click below to retry.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRetry = () => {
+    const nextRetry = retryCount + 1;
+    setRetryCount(nextRetry);
+    generate(nextRetry);
+  };
+
   // Auto-generate on mount
-  React.useEffect(() => { generate(); }, []);
+  React.useEffect(() => { generate(0); }, []);
 
   return (
     <div className="my-4 rounded-2xl overflow-hidden border border-indigo-500/30 bg-slate-950/80 shadow-xl shadow-indigo-950/30">
@@ -57,21 +65,32 @@ function ImageBlock({ prompt }) {
             <div className="w-10 h-10 rounded-full border-2 border-indigo-500/20 border-t-indigo-500 animate-spin" />
             <ImageIcon size={18} className="absolute inset-0 m-auto text-indigo-400" />
           </div>
-          <span className="text-xs font-medium text-slate-300">Rendering visual preview...</span>
+          <span className="text-xs font-medium text-slate-300">
+            {retryCount > 0 ? 'Rendering fast retry preview...' : 'Rendering visual preview...'}
+          </span>
         </div>
       )}
 
-      {error && (
-        <div className="p-5 text-rose-400 text-xs text-center font-medium bg-rose-950/20">{error}</div>
+      {error && !loading && (
+        <div className="p-6 flex flex-col items-center gap-3 text-center bg-rose-950/20 border-t border-rose-950/30">
+          <p className="text-rose-300 text-xs font-medium">{error}</p>
+          <button
+            onClick={handleRetry}
+            className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-md transition-all duration-200"
+          >
+            <Sparkles size={13} />
+            <span>Retry Image Generation</span>
+          </button>
+        </div>
       )}
 
-      {imageUrl && !loading && (
+      {imageUrl && !loading && !error && (
         <div className="relative group">
           <img
             src={imageUrl}
             alt={prompt}
             className="w-full max-h-96 object-contain bg-slate-950"
-            onError={() => setError('Failed to load image link')}
+            onError={() => setError('Image link timed out from server.')}
           />
           <a
             href={imageUrl}
