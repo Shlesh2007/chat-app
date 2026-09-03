@@ -253,9 +253,9 @@ export default function ProfilePage() {
           </div>
 
           {autoDelete && (
-            <div className="mt-4 flex items-center gap-2 text-xs font-medium text-amber-600 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3.5 py-2.5">
-              <AlertTriangle size={14} className="shrink-0 text-amber-500" />
-              <span>Conversations older than 30 days will be permanently deleted.</span>
+            <div className="mt-4 flex items-center gap-2.5 text-xs font-medium glass-card border-slate-500/20 rounded-xl px-3.5 py-2.5">
+              <AlertTriangle size={15} className="shrink-0 text-amber-500" />
+              <span className="theme-text-muted">Conversations older than 30 days will be permanently deleted.</span>
             </div>
           )}
         </div>
