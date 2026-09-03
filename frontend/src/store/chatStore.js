@@ -65,8 +65,11 @@ export const useChatStore = create((set, get) => ({
   },
 
   sendMessage: async (content, displayContent) => {
-    const { activeConversationId, useRAG } = get();
-    if (!activeConversationId) return;
+    let { activeConversationId } = get();
+    if (!activeConversationId) {
+      const conv = await get().createConversation();
+      activeConversationId = conv.id;
+    }
 
     // Show clean display text in the bubble, send full content to AI
     const bubbleContent = displayContent || content;
