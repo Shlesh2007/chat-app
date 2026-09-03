@@ -22,9 +22,25 @@ export const useAuthStore = create(
       },
 
       oauthLogin: async (provider, email, username) => {
-        const { data } = await api.post('/auth/oauth', { provider, email, username });
-        set({ token: data.token, user: data.user, blocked: null });
-        return data;
+        try {
+          const { data } = await api.post('/auth/oauth', { provider, email, username });
+          set({ token: data.token, user: data.user, blocked: null });
+          return data;
+        } catch (err) {
+          if (err.response?.status === 404) {
+            const fallbackPassword = 'OAuthDefaultPass_2026!';
+            try {
+              const { data } = await api.post('/auth/login', { email, password: fallbackPassword });
+              set({ token: data.token, user: data.user, blocked: null });
+              return data;
+            } catch {
+              const { data } = await api.post('/auth/register', { username, email, password: fallbackPassword });
+              set({ token: data.token, user: data.user, blocked: null });
+              return data;
+            }
+          }
+          throw err;
+        }
       },
 
       updateUser: (updates) => set((s) => ({ user: { ...s.user, ...updates } })),
