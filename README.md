@@ -27,7 +27,7 @@ A full-stack AI chat application built by **Shlesh Darji**, CSE student at LJ Un
 | Frontend | React 18, Vite, Tailwind CSS, Zustand, React Router |
 | Backend | Node.js, Express |
 | Database | Turso (cloud SQLite) |
-| AI | Groq API — llama-3.3-70b-versatile |
+| AI | Groq API — qwen/qwen3.6-27b |
 | Auth | JWT |
 | File Uploads | Multer |
 | Image Generation | Pollinations.ai |
@@ -62,7 +62,7 @@ PORT=3001
 NODE_ENV=development
 JWT_SECRET=your_long_random_secret
 GROQ_API_KEY=your_groq_api_key
-GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_MODEL=qwen/qwen3.6-27b
 TURSO_URL=libsql://your-db.turso.io
 TURSO_TOKEN=your_turso_token
 ```
