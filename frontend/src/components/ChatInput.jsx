@@ -181,10 +181,10 @@ export default function ChatInput({ inputRef: externalRef }) {
           <button
             onClick={handleSend}
             disabled={(!input.trim() && !attachedImage && !attachedDoc) || isStreaming}
-            className={`p-2.5 rounded-xl flex items-center justify-center transition-all duration-300 shrink-0 shadow-lg ${
+            className={`p-2.5 rounded-xl flex items-center justify-center transition-all duration-300 shrink-0 ${
               input.trim() || attachedImage || attachedDoc
-                ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-600/30 hover:scale-105'
-                : 'bg-slate-800/60 text-slate-500 cursor-not-allowed border border-slate-800'
+                ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-600/30 scale-105 active:scale-95'
+                : 'glass-card theme-text-muted opacity-45 cursor-not-allowed'
             }`}
           >
             <Send size={17} className={isStreaming ? 'animate-spin' : ''} />
