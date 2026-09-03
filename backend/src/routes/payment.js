@@ -8,7 +8,6 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 const router = express.Router();
 
 // Lazy-init so env vars are guaranteed loaded before instantiation
-// Reset instance on every server start (no module-level caching across restarts)
 let _razorpay = null;
 function getRazorpay() {
   if (!_razorpay) {
@@ -24,11 +23,11 @@ function getRazorpay() {
   return _razorpay;
 }
 
-// Credit packs
+// Credit packs (price in Rupees, amount in Paise for Razorpay)
 const PACKS = {
-  starter: { credits: 100,  amount: 500,  label: '100 Credits' },
-  popular: { credits: 500,  amount: 1000, label: '500 Credits' },
-  pro:     { credits: 1200, amount: 2000, label: '1200 Credits' },
+  starter: { credits: 100,  rupees: 10,  amount: 1000,  label: 'Starter' },  // ₹10 = 1000 paise
+  popular: { credits: 500,  rupees: 50,  amount: 5000,  label: 'Popular' },  // ₹50 = 5000 paise
+  pro:     { credits: 1200, rupees: 100, amount: 10000, label: 'Pro' },      // ₹100 = 10000 paise
 };
 
 // POST /api/payment/order — create Razorpay order
@@ -40,13 +39,12 @@ router.post('/order', authenticate, asyncHandler(async (req, res) => {
   let order;
   try {
     order = await getRazorpay().orders.create({
-      amount: selected.amount, // in paise
+      amount: selected.amount, // in paise (₹1 = 100 paise)
       currency: 'INR',
       receipt: `rcpt_${req.user.id.slice(0, 8)}_${Date.now().toString().slice(-8)}`,
       notes: { userId: req.user.id, pack, credits: selected.credits },
     });
   } catch (rzpErr) {
-    // Razorpay SDK throws plain objects — normalise to a real Error
     const msg = rzpErr?.error?.description || rzpErr?.message || JSON.stringify(rzpErr);
     console.error('Razorpay order error:', msg);
     return res.status(502).json({ error: `Payment gateway error: ${msg}` });
