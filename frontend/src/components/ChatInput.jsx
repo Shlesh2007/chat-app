@@ -45,7 +45,7 @@ export default function ChatInput({ inputRef: externalRef }) {
     }
 
     if (attachedImage) {
-      aiContent = `[IMAGE ATTACHED: ${attachedImage.name}]\nData: ${attachedImage.base64}\n\n${trimmed || 'Please describe and analyze this image.'}`;
+      aiContent = `User Request: ${trimmed || 'Please describe and analyze this image.'}\n\n[Attached Image: ${attachedImage.name}]`;
       displayContent = `🖼️ ${attachedImage.name}${trimmed ? '\n' + trimmed : ''}`;
       setAttachedImage(null);
     }
