@@ -21,6 +21,18 @@ export const useAuthStore = create(
         return data;
       },
 
+      loginWithGoogleToken: async (accessToken) => {
+        const { data } = await api.post('/auth/google', { accessToken });
+        set({ token: data.token, user: data.user, blocked: null });
+        return data;
+      },
+
+      loginWithGithubCode: async (code) => {
+        const { data } = await api.post('/auth/github', { code });
+        set({ token: data.token, user: data.user, blocked: null });
+        return data;
+      },
+
       oauthLogin: async (provider, email, username) => {
         try {
           const { data } = await api.post('/auth/oauth', { provider, email, username });
