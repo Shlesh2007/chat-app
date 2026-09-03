@@ -103,13 +103,13 @@ export default function ProfilePage() {
 
         {/* Feedback Messages */}
         {success && (
-          <div className="bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-medium px-4 py-3 rounded-2xl flex items-center gap-2 animate-fadeIn">
-            <Check size={16} className="text-emerald-400" />
+          <div className="bg-emerald-500/10 border border-emerald-500/40 text-emerald-600 dark:text-emerald-300 text-xs font-medium px-4 py-3 rounded-2xl flex items-center gap-2 animate-fadeIn">
+            <Check size={16} className="text-emerald-500" />
             <span>{success}</span>
           </div>
         )}
         {error && (
-          <div className="bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs font-medium px-4 py-3 rounded-2xl animate-fadeIn">
+          <div className="bg-rose-500/10 border border-rose-500/40 text-rose-600 dark:text-rose-300 text-xs font-medium px-4 py-3 rounded-2xl animate-fadeIn">
             {error}
           </div>
         )}
@@ -117,7 +117,7 @@ export default function ProfilePage() {
         {/* Theme Customization Section */}
         <div className="glass-card rounded-3xl p-6 shadow-xl">
           <h2 className="text-xs font-semibold theme-text-muted uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Palette size={16} className="text-indigo-400" />
+            <Palette size={16} className="text-indigo-500" />
             Theme & Appearance
           </h2>
 
@@ -169,7 +169,7 @@ export default function ProfilePage() {
                 </div>
               )}
               {uploadingAvatar && (
-                <div className="absolute inset-0 rounded-2xl bg-slate-950/70 backdrop-blur-sm flex items-center justify-center">
+                <div className="absolute inset-0 rounded-2xl bg-black/50 backdrop-blur-sm flex items-center justify-center">
                   <div className="w-6 h-6 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
                 </div>
               )}
@@ -187,7 +187,7 @@ export default function ProfilePage() {
               {avatarUrl && (
                 <button
                   onClick={handleRemoveAvatar}
-                  className="flex items-center gap-2 glass-card hover:bg-slate-800 text-xs px-4 py-2 rounded-xl transition"
+                  className="flex items-center gap-2 glass-card hover:bg-slate-500/10 text-xs px-4 py-2 rounded-xl transition"
                 >
                   <Trash2 size={14} />
                   Remove Photo
@@ -237,8 +237,10 @@ export default function ProfilePage() {
             </div>
             <button
               onClick={() => setAutoDelete(!autoDelete)}
-              className={`relative shrink-0 w-12 h-6.5 rounded-full transition-colors duration-300 ${
-                autoDelete ? 'bg-indigo-600' : 'bg-slate-700'
+              className={`relative shrink-0 w-12 h-6.5 rounded-full transition-colors duration-300 border ${
+                autoDelete
+                  ? 'bg-indigo-600 border-indigo-500'
+                  : 'glass-card border-opacity-30'
               }`}
             >
               <span
@@ -250,9 +252,9 @@ export default function ProfilePage() {
           </div>
 
           {autoDelete && (
-            <div className="mt-4 flex items-center gap-2 text-xs text-amber-300 bg-amber-950/30 border border-amber-500/30 rounded-xl px-3.5 py-2.5">
-              <AlertTriangle size={14} className="shrink-0 text-amber-400" />
-              Conversations older than 30 days will be permanently deleted.
+            <div className="mt-4 flex items-center gap-2 text-xs font-medium text-amber-600 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3.5 py-2.5">
+              <AlertTriangle size={14} className="shrink-0 text-amber-500" />
+              <span>Conversations older than 30 days will be permanently deleted.</span>
             </div>
           )}
         </div>
@@ -274,19 +276,19 @@ export default function ProfilePage() {
         </button>
 
         {/* Danger Zone */}
-        <div className="glass-card rounded-3xl p-6 border-rose-950/80 shadow-xl">
-          <h2 className="text-xs font-semibold text-rose-400 uppercase tracking-wider mb-3">Danger Zone</h2>
+        <div className="glass-card rounded-3xl p-6 border-rose-500/30 shadow-xl">
+          <h2 className="text-xs font-semibold text-rose-500 uppercase tracking-wider mb-3">Danger Zone</h2>
           {!showDeleteConfirm ? (
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="flex items-center gap-2 text-rose-400 hover:text-rose-300 text-xs font-semibold border border-rose-900/60 hover:border-rose-700 px-4 py-2.5 rounded-xl transition bg-rose-950/20"
+              className="flex items-center gap-2 text-rose-600 dark:text-rose-400 hover:text-rose-500 text-xs font-semibold border border-rose-500/40 hover:border-rose-500 px-4 py-2.5 rounded-xl transition bg-rose-500/10"
             >
               <Trash2 size={15} />
               Delete Account
             </button>
           ) : (
             <div className="space-y-3">
-              <p className="text-xs text-rose-300 font-medium">This will permanently delete your account and chat data. Are you sure?</p>
+              <p className="text-xs text-rose-600 dark:text-rose-300 font-medium">This will permanently delete your account and chat data. Are you sure?</p>
               <div className="flex gap-3">
                 <button
                   onClick={handleDeleteAccount}
