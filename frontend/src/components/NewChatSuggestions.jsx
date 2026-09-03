@@ -1,7 +1,7 @@
 import React from 'react';
 import { useChatStore } from '../store/chatStore.js';
 import { useAuthStore } from '../store/authStore.js';
-import { Bot, Code, Image, FileText, Lightbulb, Globe, ArrowRight } from 'lucide-react';
+import { Bot, Code, Image, FileText, Lightbulb, ArrowRight } from 'lucide-react';
 
 const SUGGESTIONS = [
   {
@@ -23,16 +23,6 @@ const SUGGESTIONS = [
     icon: <FileText size={16} className="text-emerald-400" />,
     label: 'Summarize text',
     prompt: 'Summarize the key points of the attached document',
-  },
-  {
-    icon: <Globe size={16} className="text-cyan-400" />,
-    label: 'Translate',
-    prompt: 'Translate "Hello, how are you?" into French, Spanish, and Japanese',
-  },
-  {
-    icon: <Code size={16} className="text-rose-400" />,
-    label: 'Debug code',
-    prompt: 'Help me debug this error: TypeError: Cannot read properties of undefined',
   },
 ];
 
@@ -78,23 +68,23 @@ export default function NewChatSuggestions() {
         What can I help you with today?
       </p>
 
-      {/* Suggestion grid — Mobile Optimized */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full max-w-xl px-1">
+      {/* Strict 2x2 Grid Format (4 Cards Total) */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 w-full max-w-2xl px-1">
         {SUGGESTIONS.map((s, i) => (
           <button
             key={s.prompt}
             onClick={() => handleSuggestion(s.prompt)}
-            className="flex items-center gap-3 glass-card glass-card-hover rounded-2xl p-3 sm:p-3.5 text-left transition-all duration-200 group border border-opacity-20 shadow-xs"
+            className="flex items-center gap-2.5 sm:gap-3 glass-card glass-card-hover rounded-2xl p-3 sm:p-3.5 text-left transition-all duration-200 group border border-opacity-20 shadow-xs h-full"
             style={{ animation: `slideUp 0.35s ease ${0.2 + i * 0.05}s both` }}
           >
             <div className="w-8 h-8 rounded-xl bg-slate-900/40 flex items-center justify-center shrink-0 border border-slate-700/30">
               {s.icon}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] theme-text-muted font-bold uppercase tracking-wider mb-0.5">{s.label}</p>
-              <p className="text-xs font-medium theme-text-heading truncate">{s.prompt}</p>
+              <p className="text-[10px] sm:text-[11px] theme-text-muted font-bold uppercase tracking-wider mb-0.5 truncate">{s.label}</p>
+              <p className="text-[11px] sm:text-xs font-medium theme-text-heading truncate">{s.prompt}</p>
             </div>
-            <ArrowRight size={14} className="theme-text-muted group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+            <ArrowRight size={14} className="theme-text-muted group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0 hidden sm:block" />
           </button>
         ))}
       </div>
