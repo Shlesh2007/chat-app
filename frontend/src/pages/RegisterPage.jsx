@@ -79,7 +79,7 @@ export default function RegisterPage() {
     const top = window.screen.height / 2 - height / 2;
 
     if (provider === 'google') {
-      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1082937482910-chatappdemo.apps.googleusercontent.com';
+      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '311510791510-57sj4ek9rsf5tec7meqigl93sqbqcu1b.apps.googleusercontent.com';
       const redirectUri = window.location.origin + '/oauth-callback.html';
       const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent('openid email profile')}&prompt=select_account`;
 
