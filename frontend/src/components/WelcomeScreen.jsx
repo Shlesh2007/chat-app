@@ -11,9 +11,9 @@ const suggestions = [
 export default function WelcomeScreen({ onNewChat }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-3 sm:px-4 py-6 sm:py-10 bg-grid-pattern relative overflow-y-auto select-none">
-      {/* Background Ambient Glow Orbs */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 sm:w-96 h-72 sm:h-96 bg-indigo-600/15 blur-[100px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-60 sm:w-80 h-60 sm:h-80 bg-purple-600/15 blur-[100px] rounded-full pointer-events-none" />
+      {/* Background Ambient Glow Orbs — Hidden on small mobile screens to optimize GPU performance */}
+      <div className="hidden sm:block absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/15 blur-[100px] rounded-full pointer-events-none" />
+      <div className="hidden sm:block absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-600/15 blur-[100px] rounded-full pointer-events-none" />
 
       {/* Hero Icon */}
       <div className="relative mb-4 sm:mb-5 group cursor-pointer" onClick={onNewChat}>
@@ -53,8 +53,8 @@ export default function WelcomeScreen({ onNewChat }) {
           <button
             key={item.title}
             onClick={onNewChat}
-            className="group text-left glass-card glass-card-hover rounded-2xl p-3 sm:p-4 transition-all duration-300 flex flex-col justify-between h-full min-h-[90px] sm:min-h-[100px] shadow-sm border border-opacity-20"
-            style={{ animation: `slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${0.15 + idx * 0.05}s both` }}
+            className="group text-left glass-card glass-card-hover rounded-2xl p-3 sm:p-4 transition-all duration-200 flex flex-col justify-between h-full min-h-[90px] sm:min-h-[100px] shadow-sm border border-opacity-20 active:scale-[0.98]"
+            style={{ animation: `slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) ${0.1 + idx * 0.03}s both` }}
           >
             <div className="flex items-center justify-between mb-1.5 sm:mb-2">
               <span className="text-sm sm:text-lg">{item.icon}</span>
