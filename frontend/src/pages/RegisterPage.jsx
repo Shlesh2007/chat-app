@@ -31,7 +31,7 @@ export default function RegisterPage() {
           navigate('/');
         } catch (err) {
           setError(err.response?.data?.error || 'Failed to verify Google account details.');
-        } fontally {
+        } finally {
           setOauthLoading(null);
         }
       } else if (type === 'OAUTH_GITHUB_SUCCESS' && code) {
@@ -89,7 +89,7 @@ export default function RegisterPage() {
         `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,status=yes`
       );
     } else if (provider === 'github') {
-      const githubClientId = import.meta.env.VITE_GITHUB_CLIENT_ID || 'demo';
+      const githubClientId = import.meta.env.VITE_GITHUB_CLIENT_ID || 'Ov23li_chatapp_demo';
       const redirectUri = window.location.origin + '/oauth-callback.html';
       const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${githubClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`;
 
