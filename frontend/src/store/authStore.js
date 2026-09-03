@@ -21,6 +21,12 @@ export const useAuthStore = create(
         return data;
       },
 
+      oauthLogin: async (provider, email, username) => {
+        const { data } = await api.post('/auth/oauth', { provider, email, username });
+        set({ token: data.token, user: data.user, blocked: null });
+        return data;
+      },
+
       updateUser: (updates) => set((s) => ({ user: { ...s.user, ...updates } })),
 
       refreshCredits: async () => {

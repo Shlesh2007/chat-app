@@ -48,6 +48,29 @@ router.post('/login', asyncHandler(async (req, res) => {
   res.json({ token, user: { id: user.id, username: user.username, email: user.email, credits: Number(user.credits || 0) } });
 }));
 
+router.post('/oauth', asyncHandler(async (req, res) => {
+  const { provider, email, username } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required for OAuth authentication' });
+
+  const db = getDB();
+  const existing = await db.execute({ sql: 'SELECT * FROM users WHERE email=?', args: [email] });
+  let user = existing.rows[0];
+
+  if (!user) {
+    const userId = uuidv4();
+    const finalUsername = username || email.split('@')[0] + '_' + Math.floor(Math.random() * 1000);
+    const passwordHash = await bcrypt.hash(uuidv4(), 12);
+    await db.execute({
+      sql: 'INSERT INTO users (id,username,email,password_hash,credits) VALUES (?,?,?,?,100)',
+      args: [userId, finalUsername, email, passwordHash],
+    });
+    user = { id: userId, username: finalUsername, email, credits: 100 };
+  }
+
+  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  res.json({ token, user: { id: user.id, username: user.username, email: user.email, credits: Number(user.credits || 0) } });
+}));
+
 router.get('/me', authenticate, asyncHandler(async (req, res) => {
   res.json({ user: req.user });
 }));
