@@ -110,12 +110,12 @@ export default function BlockedPage({ reason, onUnblocked }) {
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Write your appeal here... (e.g. I believe this block was a mistake because...)"
                 rows={4}
-                className="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none"
               />
               <button
                 type="submit"
                 disabled={loading || !message.trim()}
-                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-indigo-600/30"
               >
                 <Send size={16} />
                 {loading ? 'Submitting...' : 'Submit Appeal'}

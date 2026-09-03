@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../lib/api.js';
+import { Bot } from 'lucide-react';
 
 export default function BackendWakeup({ children }) {
   const [ready, setReady] = useState(false);
@@ -18,13 +19,10 @@ export default function BackendWakeup({ children }) {
       } catch {
         if (cancelled) return;
         attempts++;
-        // Only show "starting up" message after 2 failed attempts (~8s)
-        // so a normal fast load never shows it
         if (attempts >= 2) setWaking(true);
         if (attempts < maxAttempts) {
           setTimeout(ping, 3000);
         } else {
-          // Give up waiting — show the app anyway
           setReady(true);
         }
       }
@@ -36,31 +34,29 @@ export default function BackendWakeup({ children }) {
 
   if (!ready) {
     return (
-      <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center gap-4">
-        <div
-          className="w-14 h-14 bg-green-600 rounded-2xl flex items-center justify-center mb-2"
-          style={{ animation: 'popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}
-        >
-          <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
-            <rect x="8" y="11" width="16" height="13" rx="3" fill="white"/>
-            <circle cx="12.5" cy="16" r="2" fill="#16a34a"/>
-            <circle cx="19.5" cy="16" r="2" fill="#16a34a"/>
-            <rect x="11" y="20" width="10" height="2" rx="1" fill="#16a34a"/>
-            <rect x="15" y="6" width="2" height="5" rx="1" fill="white"/>
-            <circle cx="16" cy="5.5" r="1.5" fill="white"/>
-          </svg>
+      <div className="min-h-screen bg-[#0b0f19] bg-grid-pattern flex flex-col items-center justify-center gap-4 select-none relative overflow-hidden">
+        {/* Glow orb */}
+        <div className="absolute w-80 h-80 bg-indigo-600/20 blur-[100px] rounded-full pointer-events-none" />
+
+        {/* Brand Icon */}
+        <div className="relative">
+          <div className="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 opacity-75 blur-md animate-pulseGlow" />
+          <div className="relative w-16 h-16 bg-slate-950 border border-slate-800 rounded-3xl flex items-center justify-center shadow-2xl">
+            <Bot size={34} className="text-indigo-400" />
+          </div>
         </div>
 
-        <div className="flex gap-1.5">
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+        {/* Loading dots */}
+        <div className="flex gap-2 mt-2">
+          <span className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+          <span className="w-2.5 h-2.5 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+          <span className="w-2.5 h-2.5 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
 
-        <p className="text-white font-semibold text-lg">Chat-App</p>
+        <p className="text-white font-heading font-extrabold text-xl tracking-tight">Chat-App</p>
         {waking && (
-          <p className="text-gray-400 text-sm text-center max-w-xs px-4">
-            Starting up the server, please wait a moment...
+          <p className="text-slate-400 text-xs text-center max-w-xs px-4 animate-fadeIn">
+            Waking up server instance, please wait a moment...
           </p>
         )}
       </div>

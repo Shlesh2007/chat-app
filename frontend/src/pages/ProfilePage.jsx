@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.js';
-import { ArrowLeft, Camera, Trash2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Camera, Trash2, AlertTriangle, Sparkles, Check, Shield } from 'lucide-react';
 import api from '../lib/api.js';
 import { assetUrl } from '../lib/utils.js';
 
@@ -77,62 +77,61 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
-      {/* Header */}
-      <div className="border-b border-gray-700 px-6 py-4 flex items-center gap-4">
+    <div className="min-h-screen bg-[#0b0f19] bg-grid-pattern flex flex-col text-slate-100 select-none">
+      {/* Top Header */}
+      <div className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md px-6 py-4 flex items-center gap-4 sticky top-0 z-30">
         <button
           onClick={() => navigate('/')}
-          className="text-gray-400 hover:text-white transition p-1 rounded-lg hover:bg-gray-700"
+          className="text-slate-400 hover:text-white transition p-2 rounded-xl hover:bg-slate-800/60"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={19} />
         </button>
-        <h1 className="text-lg font-semibold text-white">Profile Settings</h1>
+        <h1 className="text-base font-heading font-extrabold text-white">Profile Settings</h1>
       </div>
 
-      <div className="flex-1 max-w-xl mx-auto w-full px-6 py-8 space-y-8">
+      <div className="flex-1 max-w-xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
 
-        {/* Feedback */}
+        {/* Feedback Messages */}
         {success && (
-          <div className="bg-green-900/40 border border-green-700 text-green-300 text-sm px-4 py-3 rounded-lg">
-            {success}
+          <div className="bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-medium px-4 py-3 rounded-2xl flex items-center gap-2">
+            <Check size={16} className="text-emerald-400" />
+            <span>{success}</span>
           </div>
         )}
         {error && (
-          <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm px-4 py-3 rounded-lg">
+          <div className="bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs font-medium px-4 py-3 rounded-2xl">
             {error}
           </div>
         )}
 
-        {/* Avatar section */}
-        <div className="bg-gray-800 border border-gray-700 rounded-2xl p-6">
-          <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-5">Profile Photo</h2>
+        {/* Avatar Section */}
+        <div className="glass-card rounded-3xl p-6 border border-slate-800/80 shadow-xl">
+          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-5">Profile Photo</h2>
           <div className="flex items-center gap-6">
-            {/* Avatar display */}
             <div className="relative">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
                   alt="Avatar"
-                  className="w-20 h-20 rounded-full object-cover border-2 border-gray-600"
+                  className="w-20 h-20 rounded-2xl object-cover border-2 border-indigo-500/40 shadow-lg"
                 />
               ) : (
-                <div className="w-20 h-20 rounded-full bg-green-600 flex items-center justify-center text-2xl font-bold text-white border-2 border-gray-600">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
                   {initials}
                 </div>
               )}
               {uploadingAvatar && (
-                <div className="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="absolute inset-0 rounded-2xl bg-slate-950/70 backdrop-blur-sm flex items-center justify-center">
+                  <div className="w-6 h-6 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
                 </div>
               )}
             </div>
 
-            {/* Buttons */}
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingAvatar}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
+                className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-md transition-all duration-200"
               >
                 <Camera size={15} />
                 {avatarUrl ? 'Change Photo' : 'Upload Photo'}
@@ -140,110 +139,116 @@ export default function ProfilePage() {
               {avatarUrl && (
                 <button
                   onClick={handleRemoveAvatar}
-                  className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm px-4 py-2 rounded-lg transition"
+                  className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs px-4 py-2 rounded-xl border border-slate-800 transition"
                 >
-                  <Trash2 size={15} />
+                  <Trash2 size={14} />
                   Remove Photo
                 </button>
               )}
-              <p className="text-xs text-gray-500">JPG, PNG, GIF · Max 5MB</p>
+              <p className="text-[11px] text-slate-500">JPG, PNG, GIF · Max 5MB</p>
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
         </div>
 
-        {/* Account info */}
-        <div className="bg-gray-800 border border-gray-700 rounded-2xl p-6 space-y-4">
-          <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">Account Info</h2>
+        {/* Account Info Section */}
+        <div className="glass-card rounded-3xl p-6 border border-slate-800/80 shadow-xl space-y-4">
+          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Account Info</h2>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Username</label>
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">Username</label>
             <input
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Email</label>
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">Email Address</label>
             <input
               value={user?.email || ''}
               disabled
-              className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2.5 text-gray-400 text-sm cursor-not-allowed"
+              className="w-full bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-500 text-sm cursor-not-allowed"
             />
           </div>
         </div>
 
-        {/* Auto-delete toggle */}
-        <div className="bg-gray-800 border border-gray-700 rounded-2xl p-6">
-          <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">Memory Settings</h2>
+        {/* Memory Settings */}
+        <div className="glass-card rounded-3xl p-6 border border-slate-800/80 shadow-xl">
+          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Memory Settings</h2>
 
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <p className="text-white text-sm font-medium">Auto-delete chat history</p>
-              <p className="text-gray-400 text-xs mt-1">
+              <p className="text-white text-sm font-semibold">Auto-delete chat history</p>
+              <p className="text-slate-400 text-xs mt-1 leading-relaxed">
                 {autoDelete
-                  ? '🗑️ Conversations older than 30 days will be automatically deleted.'
-                  : '💾 All conversations are kept forever. Your AI remembers everything.'}
+                  ? '🗑️ Conversations older than 30 days are automatically purged.'
+                  : '💾 All conversations are retained. Your AI remembers your chats.'}
               </p>
             </div>
-            {/* Toggle switch */}
             <button
               onClick={() => setAutoDelete(!autoDelete)}
-              className={`relative shrink-0 w-12 h-6 rounded-full transition-colors duration-200 ${
-                autoDelete ? 'bg-red-500' : 'bg-green-600'
+              className={`relative shrink-0 w-12 h-6.5 rounded-full transition-colors duration-300 ${
+                autoDelete ? 'bg-indigo-600' : 'bg-slate-800'
               }`}
             >
               <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
-                  autoDelete ? 'translate-x-6' : 'translate-x-0'
+                className={`absolute top-1 left-1 w-4.5 h-4.5 bg-white rounded-full shadow transition-transform duration-300 ${
+                  autoDelete ? 'translate-x-5.5 bg-white' : 'translate-x-0'
                 }`}
               />
             </button>
           </div>
 
           {autoDelete && (
-            <div className="mt-3 flex items-center gap-2 text-xs text-amber-400 bg-amber-900/20 border border-amber-800 rounded-lg px-3 py-2">
-              <AlertTriangle size={13} />
-              Conversations older than 30 days will be permanently deleted automatically.
+            <div className="mt-4 flex items-center gap-2 text-xs text-amber-300 bg-amber-950/30 border border-amber-500/30 rounded-xl px-3.5 py-2.5">
+              <AlertTriangle size={14} className="shrink-0 text-amber-400" />
+              Conversations older than 30 days will be permanently deleted.
             </div>
           )}
         </div>
 
-        {/* Save button */}
+        {/* Save Button */}
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition"
+          className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white font-semibold py-3 rounded-2xl shadow-lg shadow-indigo-600/30 transition-all duration-300 flex items-center justify-center gap-2"
         >
-          {saving ? 'Saving...' : 'Save Changes'}
+          {saving ? (
+            <>
+              <Sparkles size={16} className="animate-spin" />
+              <span>Saving Changes...</span>
+            </>
+          ) : (
+            'Save Changes'
+          )}
         </button>
 
-        {/* Danger zone */}
-        <div className="bg-gray-800 border border-red-900/50 rounded-2xl p-6">
-          <h2 className="text-sm font-semibold text-red-400 uppercase tracking-wide mb-3">Danger Zone</h2>
+        {/* Danger Zone */}
+        <div className="glass-card rounded-3xl p-6 border border-rose-950/80 shadow-xl">
+          <h2 className="text-xs font-semibold text-rose-400 uppercase tracking-wider mb-3">Danger Zone</h2>
           {!showDeleteConfirm ? (
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="flex items-center gap-2 text-red-400 hover:text-red-300 text-sm border border-red-800 hover:border-red-600 px-4 py-2 rounded-lg transition"
+              className="flex items-center gap-2 text-rose-400 hover:text-rose-300 text-xs font-semibold border border-rose-900/60 hover:border-rose-700 px-4 py-2.5 rounded-xl transition bg-rose-950/20"
             >
               <Trash2 size={15} />
               Delete Account
             </button>
           ) : (
             <div className="space-y-3">
-              <p className="text-sm text-red-300">This will permanently delete your account and all data. Are you sure?</p>
+              <p className="text-xs text-rose-300 font-medium">This will permanently delete your account and chat data. Are you sure?</p>
               <div className="flex gap-3">
                 <button
                   onClick={handleDeleteAccount}
-                  className="bg-red-600 hover:bg-red-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
+                  className="bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-md transition"
                 >
                   Yes, delete everything
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm px-4 py-2 rounded-lg transition"
+                  className="bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs px-4 py-2.5 rounded-xl border border-slate-800 transition"
                 >
                   Cancel
                 </button>

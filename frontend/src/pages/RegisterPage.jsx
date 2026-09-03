@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.js';
-import { Bot, Eye, EyeOff } from 'lucide-react';
+import { Bot, Eye, EyeOff, Sparkles } from 'lucide-react';
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('');
@@ -32,62 +32,67 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-[#0b0f19] bg-grid-pattern flex items-center justify-center px-4 relative overflow-hidden select-none">
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-600/15 blur-[120px] rounded-full pointer-events-none" />
+
+      <div className="w-full max-w-md relative z-10 animate-slideUp">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 bg-green-600 rounded-2xl flex items-center justify-center mb-4">
-            <Bot size={32} className="text-white" />
+          <div className="relative mb-4">
+            <div className="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 opacity-75 blur-md animate-pulseGlow" />
+            <div className="relative w-16 h-16 bg-slate-950 border border-slate-800 rounded-3xl flex items-center justify-center shadow-2xl">
+              <Bot size={34} className="text-indigo-400" />
+            </div>
           </div>
-          <h1 className="text-2xl font-bold text-white">Create account</h1>
-          <p className="text-gray-400 mt-1">Start chatting with your local AI</p>
+          <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-white">Create account</h1>
+          <p className="text-slate-400 text-sm mt-1">Start chatting with your AI assistant</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-gray-800 rounded-2xl p-8 shadow-xl border border-gray-700">
+        <form onSubmit={handleSubmit} className="glass-card rounded-3xl p-8 border border-slate-800/80 shadow-2xl">
           {error && (
-            <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-300 text-sm">
+            <div className="mb-5 p-3.5 bg-rose-950/40 border border-rose-800/60 rounded-xl text-rose-300 text-xs font-medium">
               {error}
             </div>
           )}
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-300 mb-2">Username</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-2 uppercase tracking-wider">Username</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+              className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-3 text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
               placeholder="johndoe"
             />
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-2 uppercase tracking-wider">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+              className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-3 text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
               placeholder="you@example.com"
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-2 uppercase tracking-wider">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 pr-12 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-3 pr-12 text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
                 placeholder="Min. 6 characters"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -97,14 +102,21 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-500 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition"
+            className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white font-semibold py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition-all duration-300 flex items-center justify-center gap-2"
           >
-            {loading ? 'Creating account...' : 'Create account'}
+            {loading ? (
+              <>
+                <Sparkles size={16} className="animate-spin" />
+                <span>Creating account...</span>
+              </>
+            ) : (
+              'Create account'
+            )}
           </button>
 
-          <p className="text-center text-gray-400 text-sm mt-6">
+          <p className="text-center text-slate-400 text-xs mt-6">
             Already have an account?{' '}
-            <Link to="/login" className="text-green-400 hover:text-green-300 font-medium">
+            <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-semibold transition">
               Sign in
             </Link>
           </p>
