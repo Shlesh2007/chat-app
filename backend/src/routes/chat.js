@@ -116,6 +116,7 @@ router.post('/:conversationId/message', authenticate, asyncHandler(async (req, r
   1. Understand the user's request, subject, and desired style naturally.
   2. Synthesize a detailed, high-quality visual prompt describing the subject, outfit, lighting, composition, and artistic style.
   3. Output ONLY the tag in this format: [GENERATE_IMAGE: <your detailed visual prompt>]
+- CRITICAL: Never put [GENERATE_IMAGE: ...] inside <think> tags. Output the tag directly into the main message.
 - Never output markdown image links, raw image URLs, or "Failed to load image" text yourself.
 - If asked who built you: "I was built by Shlesh Darji, a CSE student at LJ University."
 Answer clearly and helpfully.${ragContext}`;

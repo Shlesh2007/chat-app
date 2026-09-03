@@ -45,14 +45,14 @@ export default function ChatWindow() {
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center shrink-0 mt-0.5 shadow-md">
               <Bot size={16} className="text-indigo-400 animate-pulse" />
             </div>
-            <div className="flex-1 min-w-0 bg-slate-900/90 border border-slate-800 rounded-2xl rounded-tl-xs px-4 py-3 shadow-lg backdrop-blur-md">
+            <div className="flex-1 min-w-0 theme-bot-bubble rounded-2xl rounded-tl-xs px-4 py-3 shadow-lg backdrop-blur-md">
               <div className="prose-chat text-sm">
                 {cleanStreaming ? (
-                  <span className="typing-cursor text-slate-100">{cleanStreaming}</span>
+                  <span className="typing-cursor theme-text-heading">{cleanStreaming}</span>
                 ) : (
                   <span className="flex gap-1.5 items-center h-5 text-indigo-400">
                     <Sparkles size={14} className="animate-spin" />
-                    <span className="text-xs text-slate-400 font-medium">Thinking & generating response...</span>
+                    <span className="text-xs theme-text-muted font-medium">Thinking & generating response...</span>
                   </span>
                 )}
               </div>

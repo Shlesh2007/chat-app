@@ -141,12 +141,20 @@ function ImageBlock({ prompt }) {
   );
 }
 
-// Strip thinking tags <think>...</think> produced by Reasoning models like DeepSeek/Qwen
+// Strip thinking tags <think>...</think> produced by Reasoning models, but preserve image generation tags
 function cleanThinkingContent(raw) {
   if (!raw) return '';
+  const imageMatch = raw.match(/\[GENERATE_IMAGE:\s*(.*?)\]/i) || raw.match(/🎨\s*Generated Image:?\s*([^\n]+)/i);
+  const extractedTag = imageMatch ? imageMatch[0] : '';
+
   let cleaned = raw.replace(/<think>[\s\S]*?<\/think>/gi, '');
   cleaned = cleaned.replace(/<think>[\s\S]*/gi, '');
-  return cleaned.trim();
+  cleaned = cleaned.trim();
+
+  if (extractedTag && !cleaned.includes(extractedTag)) {
+    cleaned = (cleaned + '\n' + extractedTag).trim();
+  }
+  return cleaned;
 }
 
 // Parse message content — split out [GENERATE_IMAGE: ...] or 🎨 Generated Image blocks
