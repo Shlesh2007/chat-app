@@ -92,7 +92,7 @@ export default function ProfilePage() {
       <div className="border-b theme-sidebar-bg backdrop-blur-md px-6 py-4 flex items-center gap-4 sticky top-0 z-30">
         <button
           onClick={() => navigate('/')}
-          className="text-slate-400 hover:text-white transition p-2 rounded-xl hover:bg-slate-800/60"
+          className="theme-text-muted hover:theme-text-heading transition p-2 rounded-xl"
         >
           <ArrowLeft size={19} />
         </button>
@@ -115,8 +115,8 @@ export default function ProfilePage() {
         )}
 
         {/* Theme Customization Section */}
-        <div className="glass-card rounded-3xl p-6 border border-slate-800/80 shadow-xl">
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+        <div className="glass-card rounded-3xl p-6 shadow-xl">
+          <h2 className="text-xs font-semibold theme-text-muted uppercase tracking-wider mb-4 flex items-center gap-2">
             <Palette size={16} className="text-indigo-400" />
             Theme & Appearance
           </h2>
@@ -130,8 +130,8 @@ export default function ProfilePage() {
                   onClick={() => handleThemeChange(t.id)}
                   className={`group relative text-left p-3.5 rounded-2xl border transition-all duration-200 flex flex-col justify-between ${
                     isSelected
-                      ? 'bg-indigo-600/20 border-indigo-500 shadow-lg shadow-indigo-950/50 scale-[1.02]'
-                      : 'bg-slate-900/80 border-slate-800 hover:border-slate-700 hover:scale-[1.01]'
+                      ? 'bg-indigo-600/20 border-indigo-500 shadow-lg scale-[1.02]'
+                      : 'glass-card glass-card-hover hover:scale-[1.01]'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -143,8 +143,8 @@ export default function ProfilePage() {
                     )}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-white mb-0.5">{t.name}</p>
-                    <p className="text-[10px] text-slate-400 leading-tight">{t.desc}</p>
+                    <p className="text-xs font-bold theme-text-heading mb-0.5">{t.name}</p>
+                    <p className="text-[10px] theme-text-muted leading-tight">{t.desc}</p>
                   </div>
                 </button>
               );
@@ -153,8 +153,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Avatar Section */}
-        <div className="glass-card rounded-3xl p-6 border border-slate-800/80 shadow-xl">
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-5">Profile Photo</h2>
+        <div className="glass-card rounded-3xl p-6 shadow-xl">
+          <h2 className="text-xs font-semibold theme-text-muted uppercase tracking-wider mb-5">Profile Photo</h2>
           <div className="flex items-center gap-6">
             <div className="relative">
               {avatarUrl ? (
@@ -187,49 +187,49 @@ export default function ProfilePage() {
               {avatarUrl && (
                 <button
                   onClick={handleRemoveAvatar}
-                  className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs px-4 py-2 rounded-xl border border-slate-800 transition"
+                  className="flex items-center gap-2 glass-card hover:bg-slate-800 text-xs px-4 py-2 rounded-xl transition"
                 >
                   <Trash2 size={14} />
                   Remove Photo
                 </button>
               )}
-              <p className="text-[11px] text-slate-500">JPG, PNG, GIF · Max 5MB</p>
+              <p className="text-[11px] theme-text-muted">JPG, PNG, GIF · Max 5MB</p>
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
         </div>
 
         {/* Account Info Section */}
-        <div className="glass-card rounded-3xl p-6 border border-slate-800/80 shadow-xl space-y-4">
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Account Info</h2>
+        <div className="glass-card rounded-3xl p-6 shadow-xl space-y-4">
+          <h2 className="text-xs font-semibold theme-text-muted uppercase tracking-wider">Account Info</h2>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">Username</label>
+            <label className="block text-xs font-medium theme-text-muted mb-1.5">Username</label>
             <input
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+              className="w-full glass-input rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">Email Address</label>
+            <label className="block text-xs font-medium theme-text-muted mb-1.5">Email Address</label>
             <input
               value={user?.email || ''}
               disabled
-              className="w-full bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-500 text-sm cursor-not-allowed"
+              className="w-full glass-input opacity-60 rounded-xl px-4 py-2.5 text-xs cursor-not-allowed"
             />
           </div>
         </div>
 
         {/* Memory Settings */}
-        <div className="glass-card rounded-3xl p-6 border border-slate-800/80 shadow-xl">
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Memory Settings</h2>
+        <div className="glass-card rounded-3xl p-6 shadow-xl">
+          <h2 className="text-xs font-semibold theme-text-muted uppercase tracking-wider mb-4">Memory Settings</h2>
 
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <p className="text-white text-sm font-semibold">Auto-delete chat history</p>
-              <p className="text-slate-400 text-xs mt-1 leading-relaxed">
+              <p className="theme-text-heading text-sm font-semibold">Auto-delete chat history</p>
+              <p className="theme-text-muted text-xs mt-1 leading-relaxed">
                 {autoDelete
                   ? '🗑️ Conversations older than 30 days are automatically purged.'
                   : '💾 All conversations are retained. Your AI remembers your chats.'}
@@ -238,7 +238,7 @@ export default function ProfilePage() {
             <button
               onClick={() => setAutoDelete(!autoDelete)}
               className={`relative shrink-0 w-12 h-6.5 rounded-full transition-colors duration-300 ${
-                autoDelete ? 'bg-indigo-600' : 'bg-slate-800'
+                autoDelete ? 'bg-indigo-600' : 'bg-slate-700'
               }`}
             >
               <span
@@ -274,7 +274,7 @@ export default function ProfilePage() {
         </button>
 
         {/* Danger Zone */}
-        <div className="glass-card rounded-3xl p-6 border border-rose-950/80 shadow-xl">
+        <div className="glass-card rounded-3xl p-6 border-rose-950/80 shadow-xl">
           <h2 className="text-xs font-semibold text-rose-400 uppercase tracking-wider mb-3">Danger Zone</h2>
           {!showDeleteConfirm ? (
             <button
@@ -296,7 +296,7 @@ export default function ProfilePage() {
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs px-4 py-2.5 rounded-xl border border-slate-800 transition"
+                  className="glass-card text-xs px-4 py-2.5 rounded-xl transition"
                 >
                   Cancel
                 </button>
