@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Bot, User, Copy, Check, Download, Loader } from 'lucide-react';
+import { Bot, User, Copy, Check, Download, Loader, Sparkles, Image as ImageIcon } from 'lucide-react';
 import api from '../lib/api.js';
 
 function CopyButton({ text }) {
@@ -11,14 +11,15 @@ function CopyButton({ text }) {
   return (
     <button
       onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-      className="absolute top-2 right-2 p-1.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white transition opacity-0 group-hover:opacity-100"
+      className="absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition opacity-0 group-hover:opacity-100 backdrop-blur-md border border-slate-700/50"
+      title="Copy code"
     >
-      {copied ? <Check size={13} /> : <Copy size={13} />}
+      {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
     </button>
   );
 }
 
-// Renders [GENERATE_IMAGE: prompt] tags as actual images
+// Renders [GENERATE_IMAGE: prompt] or 🎨 Generated Image tags as actual image generation cards
 function ImageBlock({ prompt }) {
   const [imageUrl, setImageUrl] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ function ImageBlock({ prompt }) {
       const { data } = await api.post('/image/generate', { prompt });
       setImageUrl(data.url);
     } catch (err) {
-      setError('Image generation failed');
+      setError('Image generation failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -41,36 +42,45 @@ function ImageBlock({ prompt }) {
   React.useEffect(() => { generate(); }, []);
 
   return (
-    <div className="my-3 rounded-xl overflow-hidden border border-gray-600 bg-gray-800">
-      <div className="px-3 py-2 bg-gray-700 flex items-center justify-between">
-        <span className="text-xs text-purple-300 font-medium">🎨 Generated Image</span>
-        <span className="text-xs text-gray-400 truncate max-w-xs">{prompt}</span>
+    <div className="my-4 rounded-2xl overflow-hidden border border-indigo-500/30 bg-slate-950/80 shadow-xl shadow-indigo-950/30">
+      <div className="px-4 py-2.5 bg-gradient-to-r from-indigo-950/60 to-purple-950/60 border-b border-indigo-500/20 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Sparkles size={15} className="text-purple-400 animate-spin" style={{ animationDuration: '4s' }} />
+          <span className="text-xs font-semibold text-purple-200">AI Generated Image</span>
+        </div>
+        <span className="text-[11px] text-slate-400 truncate max-w-xs italic">{prompt}</span>
       </div>
+
       {loading && (
-        <div className="flex items-center justify-center gap-2 py-12 text-gray-400">
-          <Loader size={20} className="animate-spin" />
-          <span className="text-sm">Generating image...</span>
+        <div className="flex flex-col items-center justify-center gap-3 py-14 text-slate-400">
+          <div className="relative">
+            <div className="w-10 h-10 rounded-full border-2 border-indigo-500/20 border-t-indigo-500 animate-spin" />
+            <ImageIcon size={18} className="absolute inset-0 m-auto text-indigo-400" />
+          </div>
+          <span className="text-xs font-medium text-slate-300">Rendering visual preview...</span>
         </div>
       )}
+
       {error && (
-        <div className="p-4 text-red-400 text-sm text-center">{error}</div>
+        <div className="p-5 text-rose-400 text-xs text-center font-medium bg-rose-950/20">{error}</div>
       )}
+
       {imageUrl && !loading && (
         <div className="relative group">
           <img
             src={imageUrl}
             alt={prompt}
-            className="w-full max-h-96 object-contain bg-gray-900"
-            onError={() => setError('Failed to load image')}
+            className="w-full max-h-96 object-contain bg-slate-950"
+            onError={() => setError('Failed to load image link')}
           />
           <a
             href={imageUrl}
-            download="generated-image.jpg"
+            download="ai-generated-image.jpg"
             target="_blank"
             rel="noreferrer"
-            className="absolute bottom-2 right-2 bg-gray-800/80 hover:bg-gray-700 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition flex items-center gap-1 text-xs"
+            className="absolute bottom-3 right-3 bg-slate-900/90 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-1.5 text-xs font-semibold shadow-lg backdrop-blur-md border border-slate-700"
           >
-            <Download size={14} /> Save
+            <Download size={14} /> Save Image
           </a>
         </div>
       )}
@@ -78,26 +88,41 @@ function ImageBlock({ prompt }) {
   );
 }
 
-// Parse message content — split out [GENERATE_IMAGE: ...] blocks
-function parseContent(content) {
+// Strip thinking tags <think>...</think> produced by Reasoning models like DeepSeek/Qwen
+function cleanThinkingContent(raw) {
+  if (!raw) return '';
+  let cleaned = raw.replace(/<think>[\s\S]*?<\/think>/gi, '');
+  cleaned = cleaned.replace(/<think>[\s\S]*/gi, '');
+  return cleaned.trim();
+}
+
+// Parse message content — split out [GENERATE_IMAGE: ...] or 🎨 Generated Image blocks
+function parseContent(rawContent) {
+  const content = cleanThinkingContent(rawContent);
+  let cleanStr = content.replace(/Failed to load image[\s\S]*/gi, '');
+  cleanStr = cleanStr.replace(/\[Save\]\(https:\/\/image\.pollinations\.ai\/.*?\)/gi, '');
+
   const parts = [];
-  const regex = /\[GENERATE_IMAGE:\s*(.*?)\]/gi;
+  const regex = /(?:\[GENERATE_IMAGE:\s*(.*?)\]|🎨\s*Generated Image:?\s*([^\n]+))/gi;
   let lastIndex = 0;
   let match;
 
-  while ((match = regex.exec(content)) !== null) {
+  while ((match = regex.exec(cleanStr)) !== null) {
     if (match.index > lastIndex) {
-      parts.push({ type: 'text', content: content.slice(lastIndex, match.index) });
+      parts.push({ type: 'text', content: cleanStr.slice(lastIndex, match.index) });
     }
-    parts.push({ type: 'image', prompt: match[1].trim() });
+    const promptText = (match[1] || match[2] || '').trim();
+    if (promptText) {
+      parts.push({ type: 'image', prompt: promptText });
+    }
     lastIndex = match.index + match[0].length;
   }
 
-  if (lastIndex < content.length) {
-    parts.push({ type: 'text', content: content.slice(lastIndex) });
+  if (lastIndex < cleanStr.length) {
+    parts.push({ type: 'text', content: cleanStr.slice(lastIndex) });
   }
 
-  return parts.length > 0 ? parts : [{ type: 'text', content }];
+  return parts.length > 0 ? parts : [{ type: 'text', content: cleanStr }];
 }
 
 const markdownComponents = {
@@ -106,16 +131,16 @@ const markdownComponents = {
     const codeString = String(children).replace(/\n$/, '');
     if (!inline && match) {
       return (
-        <div className="relative group my-3">
-          <div className="flex items-center justify-between bg-gray-700 px-4 py-1.5 rounded-t-lg">
-            <span className="text-xs text-gray-400 font-mono">{match[1]}</span>
+        <div className="relative group my-3.5 rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
+          <div className="flex items-center justify-between bg-slate-900/90 px-4 py-2 border-b border-slate-800">
+            <span className="text-xs font-semibold text-indigo-400 font-mono uppercase tracking-wider">{match[1]}</span>
           </div>
           <CopyButton text={codeString} />
           <SyntaxHighlighter
             style={oneDark}
             language={match[1]}
             PreTag="div"
-            customStyle={{ margin: 0, borderRadius: '0 0 0.5rem 0.5rem', fontSize: '0.85rem' }}
+            customStyle={{ margin: 0, padding: '1rem', fontSize: '0.85rem', background: 'transparent' }}
             {...props}
           >
             {codeString}
@@ -124,7 +149,7 @@ const markdownComponents = {
       );
     }
     return (
-      <code className="bg-gray-700 text-pink-300 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+      <code className="bg-indigo-950/70 border border-indigo-500/30 text-indigo-300 px-1.5 py-0.5 rounded-md text-xs font-mono" {...props}>
         {children}
       </code>
     );
@@ -137,18 +162,22 @@ export default function MessageBubble({ message }) {
   const parts = parseContent(message.content);
 
   return (
-    <div className={`flex gap-4 group ${isUser ? 'flex-row-reverse' : ''}`}>
+    <div className={`flex gap-3.5 group ${isUser ? 'flex-row-reverse' : ''} animate-fadeIn`}>
       {/* Avatar */}
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 ${isUser ? 'bg-blue-600' : 'bg-green-600'}`}>
-        {isUser ? <User size={16} className="text-white" /> : <Bot size={16} className="text-white" />}
+      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 shadow-md ${
+        isUser
+          ? 'bg-gradient-to-tr from-indigo-600 to-purple-600 text-white'
+          : 'bg-gradient-to-tr from-slate-800 to-slate-900 border border-slate-700 text-indigo-400'
+      }`}>
+        {isUser ? <User size={16} /> : <Bot size={16} />}
       </div>
 
-      {/* Bubble */}
+      {/* Message Bubble Container */}
       <div className={`flex-1 min-w-0 ${isUser ? 'flex flex-col items-end' : ''}`}>
-        <div className={`relative max-w-[85%] rounded-2xl px-4 py-3 ${
+        <div className={`relative max-w-[88%] sm:max-w-[85%] rounded-2xl px-4 py-3 shadow-lg ${
           isUser
-            ? 'bg-blue-600 text-white rounded-tr-sm'
-            : 'bg-gray-800 text-gray-100 rounded-tl-sm border border-gray-700'
+            ? 'bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 text-white rounded-tr-xs shadow-indigo-950/40 font-normal'
+            : 'bg-slate-900/90 text-slate-100 rounded-tl-xs border border-slate-800/90 shadow-slate-950/60 backdrop-blur-md'
         }`}>
           {isUser ? (
             <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
@@ -167,15 +196,16 @@ export default function MessageBubble({ message }) {
           )}
         </div>
 
-        {/* Copy + timestamp */}
-        <div className={`flex items-center gap-2 mt-1 px-1 opacity-0 group-hover:opacity-100 transition ${isUser ? 'flex-row-reverse' : ''}`}>
+        {/* Copy + Timestamp Footer */}
+        <div className={`flex items-center gap-2 mt-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${isUser ? 'flex-row-reverse' : ''}`}>
           <button
             onClick={() => { navigator.clipboard.writeText(message.content); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-            className="text-gray-500 hover:text-gray-300 transition"
+            className="text-slate-500 hover:text-slate-300 p-0.5 transition"
+            title="Copy message"
           >
-            {copied ? <Check size={13} /> : <Copy size={13} />}
+            {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
           </button>
-          <span className="text-xs text-gray-500">
+          <span className="text-[11px] text-slate-500 font-medium">
             {(() => {
               const s = message.created_at?.toString().endsWith('Z') ? message.created_at : message.created_at + 'Z';
               return new Date(s).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' });

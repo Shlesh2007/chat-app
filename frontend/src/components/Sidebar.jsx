@@ -4,7 +4,7 @@ import { useChatStore } from '../store/chatStore.js';
 import { useAuthStore } from '../store/authStore.js';
 import {
   Plus, MessageSquare, Trash2, Edit2, Check, X,
-  LogOut, Bot, Upload, ChevronLeft, Menu, UserCircle, Zap
+  LogOut, Bot, Upload, ChevronLeft, Menu, UserCircle, Zap, Sparkles
 } from 'lucide-react';
 import UploadModal from './UploadModal.jsx';
 import { assetUrl } from '../lib/utils.js';
@@ -64,7 +64,6 @@ export default function Sidebar({ onNewChat }) {
       navigate('/admin');
       setOpen(false);
     } else {
-      // reset count if no tap within 2 seconds
       logoTapTimer.current = setTimeout(() => { logoTapCount.current = 0; }, 2000);
     }
   };
@@ -84,119 +83,141 @@ export default function Sidebar({ onNewChat }) {
   }, [open]);
 
   const sidebarContent = (
-    <div id="sidebar" className="w-72 bg-gray-800 border-r border-gray-700 flex flex-col h-full">
+    <div id="sidebar" className="w-72 bg-slate-950/90 backdrop-blur-xl border-r border-slate-800/80 flex flex-col h-full select-none">
       {/* Header */}
-      <div className="p-4 border-b border-gray-700 flex items-center justify-between">
-        <div className="flex items-center gap-2" onClick={handleLogoTap} style={{ cursor: 'default' }}>
-          <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-            <Bot size={18} className="text-white" />
+      <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
+        <div className="flex items-center gap-3 cursor-pointer group" onClick={handleLogoTap}>
+          <div className="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-300">
+            <Bot size={20} className="text-white" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-2 border-slate-950 rounded-full animate-pulse" />
           </div>
-          <span className="font-semibold text-white">Chat-App</span>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="font-heading font-bold text-white text-base tracking-wide">Chat-App</span>
+              <span className="text-[10px] uppercase font-extrabold tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded">Pro</span>
+            </div>
+            <p className="text-[11px] text-slate-400 truncate">Powered by Groq & AI</p>
+          </div>
         </div>
-        <button onClick={() => setOpen(false)} className="md:hidden text-gray-400 hover:text-white p-1 rounded">
+        <button onClick={() => setOpen(false)} className="md:hidden text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800/60 transition">
           <ChevronLeft size={18} />
         </button>
       </div>
 
-      {/* Actions */}
+      {/* Action Buttons */}
       <div className="p-3 flex gap-2">
         <button
           onClick={handleNewChat}
-          className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white text-sm font-medium py-2 px-3 rounded-lg transition"
+          className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-500 hover:to-purple-500 text-white text-sm font-semibold py-2.5 px-3 rounded-xl shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 transition-all duration-300 group"
         >
-          <Plus size={16} /> New Chat
+          <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" />
+          <span>New Chat</span>
         </button>
         <button
           onClick={() => setShowUpload(true)}
-          className="flex items-center justify-center p-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition"
+          className="flex items-center justify-center p-2.5 bg-slate-900 hover:bg-slate-800/80 text-slate-300 hover:text-white rounded-xl border border-slate-800 hover:border-indigo-500/40 transition-all duration-200"
           title="Upload documents"
         >
-          <Upload size={16} />
+          <Upload size={18} />
         </button>
       </div>
 
-      {/* Conversations */}
-      <div className="flex-1 overflow-y-auto px-2 pb-2">
+      {/* Conversations List */}
+      <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1">
         {conversations.length === 0 ? (
-          <p className="text-gray-500 text-sm text-center mt-8 px-4">No conversations yet. Start a new chat!</p>
+          <div className="text-center py-10 px-4">
+            <Sparkles size={24} className="mx-auto text-indigo-400/50 mb-2 animate-bounce" />
+            <p className="text-slate-400 text-xs font-medium">No chats yet.</p>
+            <p className="text-slate-500 text-[11px] mt-1">Start a conversation above!</p>
+          </div>
         ) : (
           <div className="space-y-1">
-            {conversations.map((conv) => (
-              <div
-                key={conv.id}
-                onClick={() => handleSelect(conv.id)}
-                className={`group flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition ${
-                  activeConversationId === conv.id ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700/60 hover:text-white'
-                }`}
-              >
-                <MessageSquare size={15} className="shrink-0 text-gray-400" />
-                {editingId === conv.id ? (
-                  <div className="flex-1 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                    <input
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && saveEdit(e)}
-                      className="flex-1 bg-gray-600 text-white text-sm px-2 py-0.5 rounded outline-none"
-                      autoFocus
-                    />
-                    <button onClick={saveEdit} className="text-green-400"><Check size={14} /></button>
-                    <button onClick={cancelEdit} className="text-gray-400"><X size={14} /></button>
-                  </div>
-                ) : (
-                  <>
-                    <span className="flex-1 text-sm truncate">{conv.title}</span>
-                    <div className="hidden group-hover:flex items-center gap-1">
-                      <button onClick={(e) => startEdit(e, conv)} className="text-gray-400 hover:text-white p-0.5 rounded">
-                        <Edit2 size={13} />
-                      </button>
-                      <button onClick={(e) => handleDelete(e, conv.id)} className="text-gray-400 hover:text-red-400 p-0.5 rounded">
-                        <Trash2 size={13} />
-                      </button>
+            <p className="px-3 text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-2">Recent Chats</p>
+            {conversations.map((conv) => {
+              const isActive = activeConversationId === conv.id;
+              return (
+                <div
+                  key={conv.id}
+                  onClick={() => handleSelect(conv.id)}
+                  className={`group relative flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 ${
+                    isActive
+                      ? 'bg-indigo-600/20 text-white border border-indigo-500/40 shadow-md shadow-indigo-950/50'
+                      : 'text-slate-300 hover:bg-slate-900/80 hover:text-white border border-transparent'
+                  }`}
+                >
+                  <MessageSquare size={16} className={`shrink-0 transition-colors ${isActive ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                  {editingId === conv.id ? (
+                    <div className="flex-1 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && saveEdit(e)}
+                        className="flex-1 bg-slate-900 text-white text-xs px-2 py-1 rounded-md border border-indigo-500 outline-none"
+                        autoFocus
+                      />
+                      <button onClick={saveEdit} className="text-emerald-400 hover:text-emerald-300 p-0.5"><Check size={14} /></button>
+                      <button onClick={cancelEdit} className="text-slate-400 hover:text-slate-200 p-0.5"><X size={14} /></button>
                     </div>
-                  </>
-                )}
-              </div>
-            ))}
+                  ) : (
+                    <>
+                      <span className="flex-1 text-xs font-medium truncate">{conv.title}</span>
+                      <div className="hidden group-hover:flex items-center gap-1">
+                        <button onClick={(e) => startEdit(e, conv)} className="text-slate-400 hover:text-indigo-300 p-1 hover:bg-slate-800 rounded-md transition">
+                          <Edit2 size={13} />
+                        </button>
+                        <button onClick={(e) => handleDelete(e, conv.id)} className="text-slate-400 hover:text-rose-400 p-1 hover:bg-slate-800 rounded-md transition">
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Credits bar */}
-      <div className="px-3 py-2 border-t border-gray-700">
+      {/* Credits Bar */}
+      <div className="px-3 py-2.5 border-t border-slate-800/80">
         <button
           onClick={() => setShowBuyCredits(true)}
-          className="w-full flex items-center justify-between bg-gray-700/60 hover:bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 transition group"
+          className="w-full flex items-center justify-between bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 hover:from-amber-500/20 hover:to-indigo-500/20 border border-amber-500/30 hover:border-amber-500/60 rounded-xl px-3 py-2 transition-all duration-300 group"
         >
           <div className="flex items-center gap-2">
-            <Zap size={14} className="text-yellow-400" />
-            <span className="text-xs text-gray-300">
-              <span className="font-semibold text-white">{user?.credits ?? 0}</span> credits
+            <div className="w-6 h-6 rounded-lg bg-amber-500/20 flex items-center justify-center">
+              <Zap size={14} className="text-amber-400 fill-amber-400/30 group-hover:scale-110 transition-transform" />
+            </div>
+            <span className="text-xs text-slate-300 font-medium">
+              <span className="font-bold text-white text-sm">{user?.credits ?? 0}</span> credits
             </span>
           </div>
-          <span className="text-xs text-green-400 font-medium group-hover:text-green-300">+ Buy</span>
+          <span className="text-xs text-amber-400 font-bold tracking-wide group-hover:text-amber-300 flex items-center gap-0.5">
+            + Top Up
+          </span>
         </button>
       </div>
 
-      {/* User footer */}
-      <div className="p-3 border-t border-gray-700 flex items-center gap-3">
-        <button onClick={() => { navigate('/profile'); setOpen(false); }} className="shrink-0 hover:opacity-80 transition">
+      {/* User Profile Footer */}
+      <div className="p-3 border-t border-slate-800/80 flex items-center gap-3 bg-slate-950/60">
+        <button onClick={() => { navigate('/profile'); setOpen(false); }} className="shrink-0 hover:scale-105 transition-transform">
           {user?.avatar ? (
-            <img src={assetUrl(user.avatar)} alt="avatar" className="w-8 h-8 rounded-full object-cover border border-gray-600" />
+            <img src={assetUrl(user.avatar)} alt="avatar" className="w-9 h-9 rounded-xl object-cover border border-slate-700 shadow-md" />
           ) : (
-            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-sm font-bold text-white">
+            <div className="w-9 h-9 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center text-sm font-bold text-white shadow-md">
               {user?.username?.[0]?.toUpperCase() || 'U'}
             </div>
           )}
         </button>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-white truncate">{user?.username}</p>
-          <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+          <p className="text-xs font-semibold text-white truncate">{user?.username}</p>
+          <p className="text-[11px] text-slate-400 truncate">{user?.email}</p>
         </div>
-        <button onClick={() => { navigate('/profile'); setOpen(false); }} className="text-gray-400 hover:text-white p-1 rounded transition">
-          <UserCircle size={16} />
+        <button onClick={() => { navigate('/profile'); setOpen(false); }} className="text-slate-400 hover:text-indigo-300 p-1.5 rounded-lg hover:bg-slate-800/60 transition" title="Profile Settings">
+          <UserCircle size={17} />
         </button>
-        <button onClick={handleLogout} className="text-gray-400 hover:text-red-400 p-1 rounded transition">
-          <LogOut size={16} />
+        <button onClick={handleLogout} className="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-800/60 transition" title="Log Out">
+          <LogOut size={17} />
         </button>
       </div>
 
@@ -206,23 +227,23 @@ export default function Sidebar({ onNewChat }) {
 
   return (
     <>
-      {/* Desktop sidebar — always visible */}
+      {/* Desktop sidebar */}
       <aside className="hidden md:flex shrink-0">
         {sidebarContent}
       </aside>
 
-      {/* Mobile: hamburger button */}
+      {/* Mobile hamburger button */}
       <button
         onClick={() => setOpen(true)}
-        className="md:hidden fixed top-3 left-3 z-40 w-9 h-9 bg-gray-800 border border-gray-700 rounded-lg flex items-center justify-center text-gray-300 hover:text-white shadow-lg"
+        className="md:hidden fixed top-3 left-3 z-40 w-10 h-10 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl flex items-center justify-center text-slate-300 hover:text-white shadow-xl shadow-black/40"
       >
-        <Menu size={18} />
+        <Menu size={20} />
       </button>
 
-      {/* Mobile: overlay + drawer */}
+      {/* Mobile drawer */}
       {open && (
         <>
-          <div className="md:hidden fixed inset-0 bg-black/60 z-40" onClick={() => setOpen(false)} />
+          <div className="md:hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40" onClick={() => setOpen(false)} />
           <div className="md:hidden fixed inset-y-0 left-0 z-50 flex animate-slideRight">
             {sidebarContent}
           </div>

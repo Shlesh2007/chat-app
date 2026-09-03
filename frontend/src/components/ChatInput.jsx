@@ -1,9 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useChatStore } from '../store/chatStore.js';
-import { Send, Square, Paperclip, X, Image as ImageIcon } from 'lucide-react';
-import api from '../lib/api.js';
+import { Send, Paperclip, X, Image as ImageIcon, Sparkles, FileText } from 'lucide-react';
 import AttachMenu from './AttachMenu.jsx';
-import { assetUrl } from '../lib/utils.js';
 
 export default function ChatInput({ inputRef: externalRef }) {
   const [input, setInput] = useState('');
@@ -26,7 +24,7 @@ export default function ChatInput({ inputRef: externalRef }) {
   useEffect(() => {
     const ta = textareaRef.current;
     if (!ta) return;
-    ta.style.height = '24px'; // reset to single line height
+    ta.style.height = '24px';
     const newHeight = Math.min(ta.scrollHeight, 180);
     ta.style.height = newHeight + 'px';
     ta.style.overflowY = newHeight >= 180 ? 'auto' : 'hidden';
@@ -36,10 +34,7 @@ export default function ChatInput({ inputRef: externalRef }) {
     const trimmed = input.trim();
     if ((!trimmed && !attachedImage && !attachedDoc) || isStreaming) return;
 
-    // What the AI receives (full content)
     let aiContent = trimmed;
-
-    // What shows in the chat bubble (clean, no raw file dump)
     let displayContent = trimmed;
 
     if (attachedDoc) {
@@ -58,9 +53,7 @@ export default function ChatInput({ inputRef: externalRef }) {
     setInput('');
     try {
       await sendMessage(aiContent, displayContent);
-    } catch (err) {
-      console.error('Send error:', err.message);
-    }
+    } catch {}
   };
 
   const handleKeyDown = (e) => {
@@ -70,150 +63,133 @@ export default function ChatInput({ inputRef: externalRef }) {
     }
   };
 
-  // Called when user picks an item from the attach menu
-  const handleMenuSelect = (item) => {
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLoadingAttach(true);
+
+    if (fileType === 'image') {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        setAttachedImage({
+          name: file.name,
+          previewUrl: URL.createObjectURL(file),
+          base64: evt.target.result,
+        });
+        setLoadingAttach(false);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      const formData = new FormData();
+      formData.append('file', file);
+      import('../lib/api.js').then(({ default: api }) => {
+        api.post('/upload/parse', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+          .then(({ data }) => {
+            setAttachedDoc({ name: data.originalName, text: data.text });
+          })
+          .catch((err) => {
+            alert(err.response?.data?.error || 'File upload failed');
+          })
+          .finally(() => setLoadingAttach(false));
+      });
+    }
+
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const openPicker = (accept, type) => {
+    setFileAccept(accept);
+    setFileType(type);
     setShowMenu(false);
-    setFileAccept(item.accept);
-    setFileType(item.type);
     setTimeout(() => fileInputRef.current?.click(), 50);
   };
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    e.target.value = '';
-    setLoadingAttach(true);
-
-    try {
-      if (fileType === 'image') {
-        // Read image as base64 for AI vision
-        const reader = new FileReader();
-        reader.onload = () => {
-          const base64 = reader.result; // data:image/...;base64,...
-          const previewUrl = reader.result;
-          setAttachedImage({ name: file.name, previewUrl, base64 });
-          setLoadingAttach(false);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        // Upload doc and extract text
-        const formData = new FormData();
-        formData.append('file', file);
-        const { data } = await api.post('/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        const textRes = await api.get(`/upload/${data.document.id}/text`);
-        setAttachedDoc({ name: file.name, text: textRes.data.text });
-        setLoadingAttach(false);
-      }
-    } catch (err) {
-      alert('Failed to read file: ' + (err.response?.data?.error || err.message));
-      setLoadingAttach(false);
-    }
-  };
-
-  const canSend = (input.trim() || attachedDoc || attachedImage) && !isStreaming;
-
   return (
-    <div className="border-t border-gray-700 bg-gray-900 px-4 py-4">
-      <div className="max-w-3xl mx-auto">
+    <div className="p-3 sm:p-4 max-w-4xl w-full mx-auto select-none">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={fileAccept}
+        onChange={handleFileSelect}
+        className="hidden"
+      />
 
-        {/* Attached doc pill */}
-        {attachedDoc && (
-          <div className="flex items-center gap-2 mb-2 bg-blue-900/30 border border-blue-700 rounded-lg px-3 py-2">
-            <Paperclip size={14} className="text-blue-400 shrink-0" />
-            <span className="text-sm text-blue-300 flex-1 truncate">{attachedDoc.name}</span>
-            <span className="text-xs text-gray-400">{(attachedDoc.text.length / 1000).toFixed(1)}k chars</span>
-            <button onClick={() => setAttachedDoc(null)} className="text-gray-400 hover:text-white">
-              <X size={14} />
-            </button>
+      {/* Main Floating Glass Input Box */}
+      <div className="relative glass-input rounded-2xl p-2 sm:p-2.5 transition-all duration-300 shadow-2xl">
+        {/* Attachment Previews */}
+        {(attachedDoc || attachedImage || loadingAttach) && (
+          <div className="flex flex-wrap gap-2 p-2 mb-2 border-b border-slate-800">
+            {loadingAttach && (
+              <div className="flex items-center gap-2 bg-indigo-950/50 border border-indigo-500/30 px-3 py-1.5 rounded-xl text-xs text-indigo-300 animate-pulse">
+                <Sparkles size={14} className="animate-spin" />
+                Processing file...
+              </div>
+            )}
+            {attachedDoc && (
+              <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl text-xs text-slate-200 shadow-md">
+                <FileText size={14} className="text-indigo-400" />
+                <span className="max-w-xs truncate font-medium">{attachedDoc.name}</span>
+                <button onClick={() => setAttachedDoc(null)} className="text-slate-400 hover:text-rose-400 p-0.5 transition">
+                  <X size={13} />
+                </button>
+              </div>
+            )}
+            {attachedImage && (
+              <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 px-2 py-1 rounded-xl text-xs text-slate-200 shadow-md">
+                <img src={attachedImage.previewUrl} alt="preview" className="w-6 h-6 rounded-lg object-cover" />
+                <span className="max-w-xs truncate font-medium">{attachedImage.name}</span>
+                <button onClick={() => setAttachedImage(null)} className="text-slate-400 hover:text-rose-400 p-0.5 transition">
+                  <X size={13} />
+                </button>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Attached image preview */}
-        {attachedImage && (
-          <div className="flex items-center gap-3 mb-2 bg-purple-900/20 border border-purple-700 rounded-lg px-3 py-2">
-            <img src={attachedImage.previewUrl} alt="preview" className="w-10 h-10 rounded-lg object-cover shrink-0" />
-            <span className="text-sm text-purple-300 flex-1 truncate">{attachedImage.name}</span>
-            <button onClick={() => setAttachedImage(null)} className="text-gray-400 hover:text-white">
-              <X size={14} />
-            </button>
-          </div>
-        )}
-
-        {/* Loading */}
-        {loadingAttach && (
-          <div className="mb-2 text-xs text-gray-400 flex items-center gap-2">
-            <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-            Reading file...
-          </div>
-        )}
-
-        {/* Input row */}
-        <div className="relative flex items-center gap-2 bg-gray-800 border border-gray-600 rounded-2xl px-3 py-2.5 focus-within:border-gray-500 transition min-h-[48px]">
-
-          {/* Attach menu trigger */}
-          <div className="relative shrink-0">
+        {/* Input Bar Row */}
+        <div className="flex items-end gap-2 px-1">
+          {/* Paperclip / Attach menu trigger */}
+          <div className="relative">
             <button
-              onClick={() => setShowMenu((v) => !v)}
-              disabled={isStreaming || loadingAttach}
-              className="text-gray-400 hover:text-white transition disabled:opacity-40 p-1"
-              title="Attach file"
+              onClick={() => setShowMenu((prev) => !prev)}
+              className="p-2 text-slate-400 hover:text-indigo-300 hover:bg-slate-800/80 rounded-xl transition duration-200 shrink-0"
+              title="Attach document or image"
             >
-              <Paperclip size={18} />
+              <Paperclip size={19} />
             </button>
-
             {showMenu && (
               <AttachMenu
-                onSelect={handleMenuSelect}
+                onSelect={(accept, type) => openPicker(accept, type)}
                 onClose={() => setShowMenu(false)}
               />
             )}
           </div>
 
-          {/* Hidden file input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={fileAccept}
-            className="hidden"
-            onChange={handleFileChange}
-          />
-
+          {/* Textarea */}
           <textarea
             ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={
-              attachedDoc
-                ? `Ask anything about "${attachedDoc.name}"...`
-                : attachedImage
-                ? 'Ask about this image...'
-                : 'Message... (Shift+Enter for new line)'
-            }
+            placeholder="Ask AI anything, generate images, analyze files..."
             rows={1}
             disabled={isStreaming}
-            className="flex-1 bg-transparent text-white placeholder-gray-500 resize-none outline-none text-sm leading-5 max-h-48 disabled:opacity-50 py-1 self-center"
-            style={{ overflowY: 'hidden' }}
+            className="flex-1 bg-transparent text-slate-100 placeholder-slate-400 text-sm focus:outline-none resize-none py-1.5 px-1 leading-relaxed max-h-44 scrollbar-thin"
           />
 
+          {/* Send Button */}
           <button
             onClick={handleSend}
-            disabled={!canSend}
-            className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition ${
-              canSend
-                ? 'bg-green-600 hover:bg-green-500 text-white'
-                : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+            disabled={(!input.trim() && !attachedImage && !attachedDoc) || isStreaming}
+            className={`p-2.5 rounded-xl flex items-center justify-center transition-all duration-300 shrink-0 shadow-lg ${
+              input.trim() || attachedImage || attachedDoc
+                ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-600/30 hover:scale-105'
+                : 'bg-slate-800/60 text-slate-500 cursor-not-allowed border border-slate-800'
             }`}
           >
-            {isStreaming ? <Square size={15} /> : <Send size={15} />}
+            <Send size={17} className={isStreaming ? 'animate-spin' : ''} />
           </button>
         </div>
-
-        <p className="text-center text-xs text-gray-600 mt-2">
-          Built by Shlesh Darji · LJ University · Powered by Groq
-        </p>
       </div>
     </div>
   );

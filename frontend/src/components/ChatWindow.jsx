@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useChatStore } from '../store/chatStore.js';
 import MessageBubble from './MessageBubble.jsx';
 import NewChatSuggestions from './NewChatSuggestions.jsx';
-import { Bot } from 'lucide-react';
+import { Bot, Sparkles } from 'lucide-react';
 
 export default function ChatWindow() {
   const { messages, isStreaming, streamingContent } = useChatStore();
@@ -12,16 +12,21 @@ export default function ChatWindow() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamingContent]);
 
-  return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="max-w-3xl mx-auto px-4 py-6">
+  // Clean streaming content from <think> tags during live stream
+  const cleanStreaming = streamingContent
+    ? streamingContent.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<think>[\s\S]*/gi, '').trim()
+    : '';
 
-        {/* Show suggestions when no messages yet */}
+  return (
+    <div className="flex-1 overflow-y-auto scrollbar-thin px-2">
+      <div className="max-w-3xl mx-auto px-2 sm:px-4 py-6">
+
+        {/* Suggestions when chat is empty */}
         {messages.length === 0 && !isStreaming && (
           <NewChatSuggestions />
         )}
 
-        {/* Messages */}
+        {/* Message History */}
         <div className="space-y-6">
           {messages.map((msg, i) => (
             <div
@@ -34,21 +39,20 @@ export default function ChatWindow() {
           ))}
         </div>
 
-        {/* Streaming indicator */}
+        {/* Live Streaming Indicator */}
         {isStreaming && (
-          <div className="flex gap-4 mt-6 animate-fadeIn">
-            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center shrink-0 mt-1">
-              <Bot size={16} className="text-white" />
+          <div className="flex gap-3.5 mt-6 animate-fadeIn">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center shrink-0 mt-0.5 shadow-md">
+              <Bot size={16} className="text-indigo-400 animate-pulse" />
             </div>
-            <div className="flex-1 min-w-0 bg-gray-800 border border-gray-700 rounded-2xl rounded-tl-sm px-4 py-3">
+            <div className="flex-1 min-w-0 bg-slate-900/90 border border-slate-800 rounded-2xl rounded-tl-xs px-4 py-3 shadow-lg backdrop-blur-md">
               <div className="prose-chat text-sm">
-                {streamingContent ? (
-                  <span className="typing-cursor">{streamingContent}</span>
+                {cleanStreaming ? (
+                  <span className="typing-cursor text-slate-100">{cleanStreaming}</span>
                 ) : (
-                  <span className="flex gap-1.5 items-center h-5">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <span className="flex gap-1.5 items-center h-5 text-indigo-400">
+                    <Sparkles size={14} className="animate-spin" />
+                    <span className="text-xs text-slate-400 font-medium">Thinking & generating response...</span>
                   </span>
                 )}
               </div>

@@ -3,36 +3,113 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --font-heading: 'Outfit', sans-serif;
+    --font-sans: 'Plus Jakarta Sans', sans-serif;
+  }
+
   * {
     box-sizing: border-box;
   }
 
   body {
-    @apply bg-gray-900 text-gray-100 font-sans antialiased;
+    font-family: var(--font-sans);
+    background-color: #0b0f19;
+    color: #f3f4f6;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
   }
 
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+
+  /* Custom Smooth Scrollbars */
   ::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-gray-800;
+    background: rgba(15, 23, 42, 0.6);
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-gray-600 rounded-full;
+    background: rgba(99, 102, 241, 0.35);
+    border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-500;
+    background: rgba(129, 140, 248, 0.6);
+  }
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+
+  .bg-grid-pattern {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .glass-card {
+    background: rgba(17, 24, 39, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+
+  .glass-card-hover {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card-hover:hover {
+    background: rgba(31, 41, 55, 0.8);
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px -10px rgba(99, 102, 241, 0.25);
+  }
+
+  .glass-input {
+    background: rgba(17, 24, 39, 0.65);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .glass-input:focus-within {
+    border-color: rgba(99, 102, 241, 0.6);
+    box-shadow: 0 0 20px -3px rgba(99, 102, 241, 0.35), inset 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #a855f7 0%, #6366f1 50%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .gradient-text-gold {
+    background: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 25px -5px rgba(168, 85, 247, 0.4);
+  }
+
+  .glow-indigo {
+    box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.4);
   }
 }
 
 @layer components {
   .prose-chat {
-    @apply text-gray-100 leading-relaxed;
+    @apply text-gray-200 leading-relaxed;
   }
 
   .prose-chat p {
@@ -40,7 +117,7 @@
   }
 
   .prose-chat h1, .prose-chat h2, .prose-chat h3 {
-    @apply font-bold text-white mt-4 mb-2;
+    @apply font-heading font-bold text-white mt-4 mb-2 tracking-tight;
   }
 
   .prose-chat h1 { @apply text-xl; }
@@ -48,7 +125,7 @@
   .prose-chat h3 { @apply text-base; }
 
   .prose-chat ul, .prose-chat ol {
-    @apply pl-5 mb-3;
+    @apply pl-5 mb-3 space-y-1;
   }
 
   .prose-chat ul { @apply list-disc; }
@@ -57,35 +134,35 @@
   .prose-chat li { @apply mb-1; }
 
   .prose-chat a {
-    @apply text-blue-400 underline hover:text-blue-300;
+    @apply text-indigo-400 font-medium underline decoration-indigo-500/40 underline-offset-4 hover:text-indigo-300 hover:decoration-indigo-400 transition;
   }
 
   .prose-chat blockquote {
-    @apply border-l-4 border-gray-500 pl-4 italic text-gray-400 my-3;
+    @apply border-l-4 border-indigo-500/70 bg-indigo-950/20 rounded-r-lg py-2 pl-4 italic text-gray-300 my-3;
   }
 
   .prose-chat table {
-    @apply w-full border-collapse mb-3;
+    @apply w-full border-collapse mb-3 overflow-hidden rounded-lg border border-gray-800;
   }
 
   .prose-chat th, .prose-chat td {
-    @apply border border-gray-600 px-3 py-2 text-left;
+    @apply border border-gray-800 px-3.5 py-2.5 text-left text-xs sm:text-sm;
   }
 
   .prose-chat th {
-    @apply bg-gray-700 font-semibold;
+    @apply bg-gray-800/90 font-semibold text-gray-200;
   }
 
   .prose-chat code:not(pre code) {
-    @apply bg-gray-700 text-pink-300 px-1.5 py-0.5 rounded text-sm font-mono;
+    @apply bg-indigo-950/60 border border-indigo-500/30 text-indigo-300 px-1.5 py-0.5 rounded text-xs font-mono;
   }
 
   .prose-chat pre {
-    @apply my-3 rounded-lg overflow-hidden;
+    @apply my-3 rounded-xl overflow-hidden border border-gray-700/60 shadow-lg;
   }
 }
 
-/* Typing cursor animation */
+/* Dynamic Animations */
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
@@ -93,8 +170,26 @@
 
 .typing-cursor::after {
   content: '▋';
-  @apply text-green-400;
-  animation: blink 1s step-end infinite;
+  @apply text-indigo-400 ml-0.5;
+  animation: blink 0.8s step-end infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+.animate-pulseGlow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-float {
+  animation: floatSlow 4s ease-in-out infinite;
 }
 
 @keyframes slideRight {
@@ -103,23 +198,28 @@
 }
 
 .animate-slideRight {
-  animation: slideRight 0.25s ease;
+  animation: slideRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes popIn {
-  from { opacity: 0; transform: scale(0.7); }
+  from { opacity: 0; transform: scale(0.85); }
   to { opacity: 1; transform: scale(1); }
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.3s ease both;
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }

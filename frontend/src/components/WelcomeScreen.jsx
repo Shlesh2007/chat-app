@@ -1,65 +1,73 @@
 import React from 'react';
-import { Bot, Zap, Image, FileText } from 'lucide-react';
+import { Bot, Zap, Image, FileText, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
 
 const suggestions = [
-  'Explain quantum computing in simple terms',
-  'Write a Python function to sort a list of dictionaries',
-  'What are the best practices for REST API design?',
-  'Generate an image of a futuristic city at night',
+  { icon: '💡', title: 'Quantum Computing', prompt: 'Explain quantum computing in simple terms' },
+  { icon: '💻', title: 'Python Sorting', prompt: 'Write a Python function to sort a list of dictionaries' },
+  { icon: '⚡', title: 'REST API Design', prompt: 'What are the best practices for modern REST API design?' },
+  { icon: '🎨', title: 'AI Image Prompt', prompt: 'Generate an image of a futuristic cyberpunk city at night' },
 ];
 
 export default function WelcomeScreen({ onNewChat }) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
-      <div
-        className="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg"
-        style={{ animation: 'popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}
-      >
-        <Bot size={36} className="text-white" />
+    <div className="flex-1 flex flex-col items-center justify-center px-4 py-12 bg-grid-pattern relative overflow-hidden select-none">
+      {/* Background Ambient Glow Orbs */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/15 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-600/15 blur-[120px] rounded-full pointer-events-none" />
+
+      {/* Hero Icon */}
+      <div className="relative mb-6 group cursor-pointer" onClick={onNewChat}>
+        <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-70 blur-md group-hover:opacity-100 transition duration-500 animate-pulseGlow" />
+        <div className="relative w-20 h-20 bg-slate-950 border border-slate-800 rounded-3xl flex items-center justify-center shadow-2xl">
+          <Bot size={42} className="text-indigo-400 group-hover:scale-110 transition-transform duration-300" />
+        </div>
       </div>
 
-      <h1
-        className="text-3xl font-bold text-white mb-2"
-        style={{ animation: 'slideUp 0.4s ease 0.1s both' }}
-      >
-        Welcome to Chat-App
+      {/* Main Title & Subtitle */}
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-extrabold text-center mb-3 tracking-tight animate-slideUp">
+        Meet Your <span className="gradient-text">AI Assistant</span>
       </h1>
-      <p
-        className="text-gray-400 mb-10 text-center max-w-md"
-        style={{ animation: 'slideUp 0.4s ease 0.15s both' }}
-      >
-        Built by Shlesh Darji · LJ University · Powered by Groq
+      <p className="text-slate-400 text-sm sm:text-base text-center max-w-md mb-8 animate-slideUp" style={{ animationDelay: '50ms' }}>
+        Built by <span className="text-slate-200 font-semibold">Shlesh Darji</span> · LJ University · Supercharged by <span className="text-indigo-400 font-semibold">Groq</span>
       </p>
 
-      {/* Feature pills */}
-      <div
-        className="flex flex-wrap justify-center gap-3 mb-10"
-        style={{ animation: 'slideUp 0.4s ease 0.2s both' }}
-      >
-        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-full px-4 py-2 text-sm text-gray-300">
-          <Zap size={14} className="text-yellow-400" />
-          Streaming responses
+      {/* Feature Capabilities */}
+      <div className="flex flex-wrap justify-center gap-2.5 mb-10 max-w-xl animate-slideUp" style={{ animationDelay: '100ms' }}>
+        <div className="flex items-center gap-2 bg-slate-900/80 border border-slate-800 rounded-full px-4 py-1.5 text-xs font-medium text-slate-300 shadow-md">
+          <Zap size={14} className="text-amber-400" />
+          <span>Real-time Ultra Streaming</span>
         </div>
-        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-full px-4 py-2 text-sm text-gray-300">
-          <FileText size={14} className="text-blue-400" />
-          Read PDF, Word, Excel & code
+        <div className="flex items-center gap-2 bg-slate-900/80 border border-slate-800 rounded-full px-4 py-1.5 text-xs font-medium text-slate-300 shadow-md">
+          <FileText size={14} className="text-indigo-400" />
+          <span>PDF, Code & Excel Analysis</span>
         </div>
-        <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-full px-4 py-2 text-sm text-gray-300">
+        <div className="flex items-center gap-2 bg-slate-900/80 border border-slate-800 rounded-full px-4 py-1.5 text-xs font-medium text-slate-300 shadow-md">
           <Image size={14} className="text-purple-400" />
-          Generate images
+          <span>Text-to-Image Generation</span>
         </div>
       </div>
 
-      {/* Suggestion prompts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl">
-        {suggestions.map((s, i) => (
+      {/* Suggestion Prompt Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full max-w-2xl px-2">
+        {suggestions.map((item, idx) => (
           <button
-            key={s}
+            key={item.title}
             onClick={onNewChat}
-            className="text-left bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-500 rounded-xl px-4 py-3 text-sm text-gray-300 hover:text-white transition-all duration-200"
-            style={{ animation: `slideUp 0.35s ease ${0.25 + i * 0.05}s both` }}
+            className="group text-left glass-card glass-card-hover rounded-2xl p-4 transition-all duration-300 border border-slate-800/80 hover:border-indigo-500/50 flex flex-col justify-between"
+            style={{ animation: `slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${0.15 + idx * 0.05}s both` }}
           >
-            {s}
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-lg">{item.icon}</span>
+              <ArrowRight size={14} className="text-slate-600 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 transition-colors mb-1">
+                {item.title}
+              </p>
+              <p className="text-[12px] text-slate-400 line-clamp-2 leading-relaxed">
+                "{item.prompt}"
+              </p>
+            </div>
           </button>
         ))}
       </div>
