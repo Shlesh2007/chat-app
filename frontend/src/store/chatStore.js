@@ -65,7 +65,7 @@ export const useChatStore = create((set, get) => ({
   },
 
   sendMessage: async (content, displayContent) => {
-    let { activeConversationId } = get();
+    let { activeConversationId, useRAG } = get();
     if (!activeConversationId) {
       const conv = await get().createConversation();
       activeConversationId = conv.id;
