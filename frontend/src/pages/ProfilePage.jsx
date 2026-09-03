@@ -237,15 +237,16 @@ export default function ProfilePage() {
             </div>
             <button
               onClick={() => setAutoDelete(!autoDelete)}
-              className={`relative shrink-0 w-12 h-6.5 rounded-full transition-colors duration-300 border ${
+              className={`relative shrink-0 w-14 h-8 rounded-full p-1 transition-colors duration-300 border flex items-center cursor-pointer ${
                 autoDelete
-                  ? 'bg-indigo-600 border-indigo-500'
-                  : 'glass-card border-opacity-30'
+                  ? 'bg-indigo-600 border-indigo-500 shadow-md shadow-indigo-600/30'
+                  : 'glass-card border-slate-700/60'
               }`}
+              title="Toggle auto-delete"
             >
               <span
-                className={`absolute top-1 left-1 w-4.5 h-4.5 bg-white rounded-full shadow transition-transform duration-300 ${
-                  autoDelete ? 'translate-x-5.5 bg-white' : 'translate-x-0'
+                className={`w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 transform ${
+                  autoDelete ? 'translate-x-6' : 'translate-x-0'
                 }`}
               />
             </button>
