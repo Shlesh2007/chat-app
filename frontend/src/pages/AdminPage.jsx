@@ -1,9 +1,10 @@
 // Admin Panel v2
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Users, MessageSquare, BarChart2, Shield, Trash2,
   ShieldOff, ShieldCheck, LogOut, RefreshCw, Key, X,
-  ChevronRight, ChevronLeft, Bot, User, CheckCircle, XCircle, Lock, Zap
+  ChevronRight, ChevronLeft, Bot, User, CheckCircle, XCircle, Lock, Zap, ArrowLeft, Home
 } from 'lucide-react';
 import { backendUrl } from '../lib/utils.js';
 
@@ -44,10 +45,11 @@ const fmt = (d) => {
 };
 
 function AdminLogin({ onLogin }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('admin123');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,31 +74,69 @@ function AdminLogin({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center mb-4">
-            <Shield size={30} className="text-white" />
+    <div className="min-h-screen bg-[#0b0f19] bg-grid-pattern flex items-center justify-center px-4 relative overflow-hidden select-none">
+      {/* Background glow orb */}
+      <div className="absolute w-96 h-96 bg-rose-600/15 blur-[120px] rounded-full pointer-events-none" />
+
+      <div className="w-full max-w-sm relative z-10 animate-slideUp">
+        {/* Navigation back to main site */}
+        <button
+          onClick={() => navigate('/')}
+          className="mb-6 flex items-center gap-2 text-slate-400 hover:text-white text-xs font-semibold px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-800 transition"
+        >
+          <ArrowLeft size={14} /> Back to Main Chat
+        </button>
+
+        <div className="flex flex-col items-center mb-6">
+          <div className="relative mb-3">
+            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-rose-500 to-indigo-500 opacity-75 blur-md animate-pulseGlow" />
+            <div className="relative w-14 h-14 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-center shadow-xl">
+              <Shield size={28} className="text-rose-400" />
+            </div>
           </div>
-          <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
-          <p className="text-gray-400 text-sm mt-1">Restricted access</p>
+          <h1 className="text-2xl font-heading font-extrabold text-white">Admin Dashboard</h1>
+          <p className="text-slate-400 text-xs mt-1">Restricted Administrative Controls</p>
         </div>
-        <form onSubmit={handleSubmit} className="bg-gray-800 border border-gray-700 rounded-2xl p-6 space-y-4">
-          {error && <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm px-3 py-2 rounded-lg">{error}</div>}
+
+        <form onSubmit={handleSubmit} className="glass-card border border-slate-800/80 rounded-3xl p-6 space-y-4 shadow-2xl">
+          {error && <div className="bg-rose-950/40 border border-rose-800/60 text-rose-300 text-xs p-3 rounded-xl font-medium">{error}</div>}
+          
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Username</label>
-            <input value={username} onChange={(e) => setUsername(e.target.value)} required
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">Admin Username</label>
+            <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition"
+            />
           </div>
+
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">Admin Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition"
+            />
           </div>
-          <button type="submit" disabled={loading}
-            className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition">
-            {loading ? 'Signing in...' : 'Sign in'}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-rose-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl transition-all duration-300 shadow-lg shadow-rose-950/40 text-sm"
+          >
+            {loading ? 'Authenticating...' : 'Sign in as Admin'}
           </button>
+
+          {/* Default Credentials Hint Box */}
+          <div className="pt-2 border-t border-slate-800 text-center">
+            <p className="text-[11px] text-slate-400">
+              🔑 <span className="font-semibold text-slate-300">Default Credentials:</span><br />
+              Username: <code className="text-indigo-300 bg-slate-900 px-1 py-0.5 rounded">admin</code> | Password: <code className="text-indigo-300 bg-slate-900 px-1 py-0.5 rounded">admin123</code>
+            </p>
+          </div>
         </form>
       </div>
     </div>
@@ -105,11 +145,11 @@ function AdminLogin({ onLogin }) {
 
 function StatCard({ icon, label, value, color }) {
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-5 flex items-center gap-4">
+    <div className="glass-card border border-slate-800/80 rounded-2xl p-4 sm:p-5 flex items-center gap-4 shadow-lg">
       <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>{icon}</div>
       <div>
-        <p className="text-2xl font-bold text-white">{value ?? '—'}</p>
-        <p className="text-sm text-gray-400">{label}</p>
+        <p className="text-2xl font-bold font-heading text-white">{value ?? '—'}</p>
+        <p className="text-xs text-slate-400 font-medium">{label}</p>
       </div>
     </div>
   );
@@ -127,24 +167,24 @@ function BlockModal({ user, onClose, onSuccess }) {
     finally { setLoading(false); }
   };
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-sm p-6">
+    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="glass-card border border-slate-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-white">Block User</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white"><X size={18} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-white"><X size={18} /></button>
         </div>
-        <p className="text-sm text-gray-400 mb-4">Block <span className="text-white font-medium">{user.username}</span>? They will see the reason.</p>
+        <p className="text-xs text-slate-400 mb-4">Block <span className="text-white font-semibold">{user.username}</span>? They will see the reason.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <textarea value={reason} onChange={(e) => setReason(e.target.value)}
             placeholder="Reason for blocking..." rows={3} autoFocus
-            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none" />
+            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-rose-500 resize-none" />
           <div className="flex gap-3">
             <button type="submit" disabled={loading}
-              className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-lg transition">
+              className="flex-1 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-semibold py-2.5 rounded-xl transition">
               {loading ? 'Blocking...' : 'Block User'}
             </button>
             <button type="button" onClick={onClose}
-              className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm py-2.5 rounded-lg transition">Cancel</button>
+              className="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs py-2.5 rounded-xl border border-slate-800 transition">Cancel</button>
           </div>
         </form>
       </div>
@@ -167,25 +207,25 @@ function PasswordModal({ user, onClose, onSuccess }) {
     finally { setLoading(false); }
   };
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-sm p-6">
+    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="glass-card border border-slate-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-semibold text-white">Reset Password</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white"><X size={18} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-white"><X size={18} /></button>
         </div>
-        <p className="text-sm text-gray-400 mb-4">New password for <span className="text-white font-medium">{user.username}</span></p>
-        {error && <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm px-3 py-2 rounded-lg mb-3">{error}</div>}
+        <p className="text-xs text-slate-400 mb-4">New password for <span className="text-white font-medium">{user.username}</span></p>
+        {error && <div className="bg-rose-950/40 border border-rose-800 text-rose-300 text-xs p-3 rounded-xl mb-3">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
             placeholder="New password (min 6 chars)" autoFocus
-            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500" />
           <div className="flex gap-3">
             <button type="submit" disabled={loading}
-              className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-lg transition">
+              className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold py-2.5 rounded-xl transition">
               {loading ? 'Updating...' : 'Update Password'}
             </button>
             <button type="button" onClick={onClose}
-              className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm py-2.5 rounded-lg transition">Cancel</button>
+              className="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs py-2.5 rounded-xl border border-slate-800 transition">Cancel</button>
           </div>
         </form>
       </div>
@@ -210,26 +250,26 @@ function CreditsModal({ user, onClose, onSuccess }) {
     finally { setLoading(false); }
   };
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-sm p-6">
+    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="glass-card border border-slate-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-semibold text-white flex items-center gap-2"><Zap size={16} className="text-yellow-400" /> Add Credits</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white"><X size={18} /></button>
+          <h3 className="font-semibold text-white flex items-center gap-2"><Zap size={16} className="text-amber-400" /> Add Credits</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-white"><X size={18} /></button>
         </div>
-        <p className="text-sm text-gray-400 mb-1">Add credits to <span className="text-white font-medium">{user.username}</span></p>
-        <p className="text-xs text-gray-500 mb-4">Current balance: <span className="text-yellow-400 font-medium">⚡ {user.credits ?? 0}</span></p>
-        {error && <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm px-3 py-2 rounded-lg mb-3">{error}</div>}
+        <p className="text-xs text-slate-400 mb-1">Add credits to <span className="text-white font-medium">{user.username}</span></p>
+        <p className="text-xs text-slate-500 mb-4">Current balance: <span className="text-amber-400 font-semibold">⚡ {user.credits ?? 0}</span></p>
+        {error && <div className="bg-rose-950/40 border border-rose-800 text-rose-300 text-xs p-3 rounded-xl mb-3">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)}
             placeholder="Credits to add (e.g. 100)" min="1" max="10000" autoFocus
-            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500" />
+            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-500" />
           <div className="flex gap-3">
             <button type="submit" disabled={loading}
-              className="flex-1 bg-yellow-600 hover:bg-yellow-500 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-lg transition">
+              className="flex-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white text-xs font-semibold py-2.5 rounded-xl transition">
               {loading ? 'Adding...' : 'Add Credits'}
             </button>
             <button type="button" onClick={onClose}
-              className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm py-2.5 rounded-lg transition">Cancel</button>
+              className="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs py-2.5 rounded-xl border border-slate-800 transition">Cancel</button>
           </div>
         </form>
       </div>
@@ -244,83 +284,76 @@ function UserDetail({ user, onBack }) {
   const [loadingConvs, setLoadingConvs] = useState(true);
   const [loadingMsgs, setLoadingMsgs] = useState(false);
   const [spamLogs, setSpamLogs] = useState([]);
-  const [detailTab, setDetailTab] = useState('conversations'); // 'conversations' | 'spam'
+  const [detailTab, setDetailTab] = useState('conversations');
 
   useEffect(() => {
     adminFetch(`/users/${user.id}/conversations`)
-      .then((d) => setConversations(d.conversations))
-      .catch(() => {})
-      .finally(() => setLoadingConvs(false));
+      .then(d => { setConversations(d.conversations); setLoadingConvs(false); })
+      .catch(() => setLoadingConvs(false));
 
     adminFetch(`/users/${user.id}/spam-logs`)
-      .then((d) => setSpamLogs(d.logs))
+      .then(d => setSpamLogs(d.spamLogs))
       .catch(() => {});
   }, [user.id]);
 
-  const loadMessages = async (conv) => {
-    setSelectedConv(conv); setLoadingMsgs(true);
-    try { const d = await adminFetch(`/conversations/${conv.id}/messages`); setMessages(d.messages); }
-    catch {} finally { setLoadingMsgs(false); }
+  const loadMessages = (conv) => {
+    setSelectedConv(conv);
+    setLoadingMsgs(true);
+    adminFetch(`/conversations/${conv.id}/messages`)
+      .then(d => { setMessages(d.messages); setLoadingMsgs(false); })
+      .catch(() => setLoadingMsgs(false));
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      <button onClick={onBack} className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition">
-        <ChevronLeft size={18} /> Back to users
-      </button>
-      <div className="flex items-center gap-3 mb-6">
-        {user.avatar
-          ? <img src={assetUrl(user.avatar)} alt="" className="w-12 h-12 rounded-full object-cover" />
-          : <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-lg font-bold text-white">{user.username?.[0]?.toUpperCase()}</div>}
-        <div>
-          <h2 className="text-xl font-bold text-white">{user.username}</h2>
-          <p className="text-gray-400 text-sm">{user.email}</p>
-        </div>
-        {Number(user.spam_count) > 0 && (
-          <span className={`ml-2 text-xs px-2 py-1 rounded-full font-medium border ${
-            Number(user.spam_count) >= 2 ? 'bg-red-900/50 text-red-400 border-red-800' : 'bg-yellow-900/50 text-yellow-400 border-yellow-800'
-          }`}>⚠️ {user.spam_count} spam strike{Number(user.spam_count) !== 1 ? 's' : ''}</span>
-        )}
-      </div>
-
-      {/* Sub-tabs */}
-      <div className="flex gap-2 border-b border-gray-700 mb-4">
-        <button onClick={() => setDetailTab('conversations')}
-          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition ${detailTab === 'conversations' ? 'bg-gray-800 text-white border border-b-0 border-gray-700' : 'text-gray-400 hover:text-white'}`}>
-          Conversations ({conversations.length})
-        </button>
-        <button onClick={() => setDetailTab('spam')}
-          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition flex items-center gap-2 ${detailTab === 'spam' ? 'bg-gray-800 text-white border border-b-0 border-gray-700' : 'text-gray-400 hover:text-white'}`}>
-          Spam Logs
-          {spamLogs.length > 0 && (
-            <span className="bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{spamLogs.length}</span>
-          )}
-        </button>
-      </div>
-
-      {/* Spam logs tab */}
-      {detailTab === 'spam' && (
-        <div className="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-700">
-            <h3 className="font-semibold text-white text-sm">Spam Strike History ({spamLogs.length})</h3>
+    <div className="space-y-6 animate-fadeIn">
+      {/* User Header Card */}
+      <div className="glass-card border border-slate-800/80 rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <button onClick={onBack} className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 transition" title="Back to user list">
+            <ArrowLeft size={18} />
+          </button>
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-bold text-white text-lg shadow-md">
+            {user.username?.[0]?.toUpperCase() || 'U'}
           </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold text-white">{user.username}</h2>
+              <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${user.is_blocked ? 'bg-rose-950/60 text-rose-400 border border-rose-800' : 'bg-emerald-950/60 text-emerald-400 border border-emerald-800'}`}>
+                {user.is_blocked ? 'Blocked' : 'Active'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">{user.email} · Joined {fmt(user.created_at)}</p>
+          </div>
+        </div>
+
+        {/* Tab selector inside user details */}
+        <div className="flex gap-2">
+          <button onClick={() => setDetailTab('conversations')} className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${detailTab === 'conversations' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-900 text-slate-400 hover:text-white'}`}>
+            Chats ({conversations.length})
+          </button>
+          <button onClick={() => setDetailTab('spam')} className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${detailTab === 'spam' ? 'bg-rose-600 text-white shadow-md' : 'bg-slate-900 text-slate-400 hover:text-white'}`}>
+            Spam Logs ({spamLogs.length})
+          </button>
+        </div>
+      </div>
+
+      {detailTab === 'spam' && (
+        <div className="glass-card border border-slate-800/80 rounded-3xl p-6">
+          <h3 className="font-semibold text-white text-sm mb-4">Spam Violation Logs</h3>
           {spamLogs.length === 0 ? (
-            <div className="p-6 text-gray-500 text-sm text-center">No spam strikes recorded</div>
+            <p className="text-slate-500 text-xs">No spam violations logged for this user.</p>
           ) : (
-            <div className="divide-y divide-gray-700">
-              {spamLogs.map((log, i) => (
-                <div key={log.id} className="px-5 py-4">
-                  <div className="flex items-start justify-between gap-4 mb-2">
-                    <span className="text-xs font-medium text-red-400 bg-red-900/30 border border-red-800 px-2 py-0.5 rounded-full">
-                      Strike #{spamLogs.length - i}
-                    </span>
-                    <span className="text-xs text-gray-500">{fmt(log.created_at)}</span>
+            <div className="space-y-3">
+              {spamLogs.map((log) => (
+                <div key={log.id} className="bg-slate-900/80 border border-slate-800 rounded-xl p-3 text-xs space-y-1">
+                  <div className="flex justify-between text-slate-400">
+                    <span>{fmt(log.created_at)}</span>
                   </div>
-                  <p className="text-sm text-gray-300 bg-gray-700/50 rounded-lg px-3 py-2 mb-2 break-words">
+                  <p className="text-slate-200 font-mono bg-slate-950 p-2 rounded-lg border border-slate-800">
                     "{log.message}"
                   </p>
-                  <p className="text-xs text-yellow-400">
-                    🤖 Reason: <span className="text-gray-300">{log.reason}</span>
+                  <p className="text-amber-400 text-xs">
+                    🤖 Reason: <span className="text-slate-300">{log.reason}</span>
                   </p>
                 </div>
               ))}
@@ -329,52 +362,52 @@ function UserDetail({ user, onBack }) {
         </div>
       )}
 
-      {/* Conversations tab */}
       {detailTab === 'conversations' && (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-700">
-            <h3 className="font-semibold text-white text-sm">Conversations ({conversations.length})</h3>
-          </div>
-          {loadingConvs ? <div className="p-4 text-gray-400 text-sm">Loading...</div>
-            : conversations.length === 0 ? <div className="p-4 text-gray-500 text-sm">No conversations</div>
-            : (
-              <div className="overflow-y-auto max-h-96">
-                {conversations.map((c) => (
-                  <button key={c.id} onClick={() => loadMessages(c)}
-                    className={`w-full text-left px-4 py-3 border-b border-gray-700/50 hover:bg-gray-700 transition flex items-center justify-between ${selectedConv?.id === c.id ? 'bg-gray-700' : ''}`}>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white truncate">{c.title}</p>
-                      <p className="text-xs text-gray-400">{fmt(c.updated_at)}</p>
-                    </div>
-                    <ChevronRight size={14} className="text-gray-400 shrink-0" />
-                  </button>
-                ))}
-              </div>
-            )}
-        </div>
-        <div className="md:col-span-2 bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-700">
-            <h3 className="font-semibold text-white text-sm">{selectedConv ? `Messages — ${selectedConv.title}` : 'Select a conversation'}</h3>
-          </div>
-          <div className="overflow-y-auto max-h-96 p-4 space-y-3">
-            {loadingMsgs ? <div className="text-gray-400 text-sm">Loading...</div>
-              : !selectedConv ? <div className="text-gray-500 text-sm">Click a conversation to view messages</div>
-              : messages.length === 0 ? <div className="text-gray-500 text-sm">No messages</div>
-              : messages.map((m) => (
-                <div key={m.id} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${m.role === 'user' ? 'bg-blue-600' : 'bg-green-600'}`}>
-                    {m.role === 'user' ? <User size={13} className="text-white" /> : <Bot size={13} className="text-white" />}
-                  </div>
-                  <div className={`max-w-[75%] rounded-xl px-3 py-2 text-sm ${m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-100'}`}>
-                    <p className="whitespace-pre-wrap break-words">{m.content}</p>
-                    <p className="text-xs opacity-60 mt-1">{fmt(m.created_at)}</p>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="glass-card border border-slate-800/80 rounded-3xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-800">
+              <h3 className="font-semibold text-white text-xs uppercase tracking-wider">Conversations ({conversations.length})</h3>
+            </div>
+            {loadingConvs ? <div className="p-4 text-slate-400 text-xs">Loading...</div>
+              : conversations.length === 0 ? <div className="p-4 text-slate-500 text-xs">No conversations</div>
+              : (
+                <div className="overflow-y-auto max-h-96">
+                  {conversations.map((c) => (
+                    <button key={c.id} onClick={() => loadMessages(c)}
+                      className={`w-full text-left px-4 py-3 border-b border-slate-800/50 hover:bg-slate-900 transition flex items-center justify-between ${selectedConv?.id === c.id ? 'bg-indigo-950/40 text-indigo-200' : 'text-slate-300'}`}>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold truncate">{c.title}</p>
+                        <p className="text-[11px] text-slate-500">{fmt(c.updated_at)}</p>
+                      </div>
+                      <ChevronRight size={14} className="text-slate-500 shrink-0" />
+                    </button>
+                  ))}
                 </div>
-              ))}
+              )}
+          </div>
+
+          <div className="md:col-span-2 glass-card border border-slate-800/80 rounded-3xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-800">
+              <h3 className="font-semibold text-white text-xs uppercase tracking-wider">{selectedConv ? `Messages — ${selectedConv.title}` : 'Select a conversation'}</h3>
+            </div>
+            <div className="overflow-y-auto max-h-96 p-4 space-y-3">
+              {loadingMsgs ? <div className="text-slate-400 text-xs">Loading...</div>
+                : !selectedConv ? <div className="text-slate-500 text-xs">Click a conversation on the left to view messages</div>
+                : messages.length === 0 ? <div className="text-slate-500 text-xs">No messages found</div>
+                : messages.map((m) => (
+                  <div key={m.id} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${m.role === 'user' ? 'bg-indigo-600' : 'bg-purple-600'}`}>
+                      {m.role === 'user' ? <User size={13} className="text-white" /> : <Bot size={13} className="text-white" />}
+                    </div>
+                    <div className={`max-w-[75%] rounded-2xl px-3.5 py-2.5 text-xs ${m.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-100 border border-slate-800'}`}>
+                      <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                      <p className="text-[10px] opacity-60 mt-1">{fmt(m.created_at)}</p>
+                    </div>
+                  </div>
+                ))}
+            </div>
           </div>
         </div>
-      </div>
       )}
     </div>
   );
@@ -392,6 +425,7 @@ function AdminDashboard({ onLogout }) {
   const [blockUser, setBlockUser] = useState(null);
   const [creditsUser, setCreditsUser] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+  const navigate = useNavigate();
 
   const load = async () => {
     setLoading(true);
@@ -407,13 +441,10 @@ function AdminDashboard({ onLogout }) {
   const notify = (text) => { setMsg(text); setTimeout(() => setMsg(''), 3000); };
 
   const handleBlock = async (id, isBlocked) => {
-    // isBlocked is 0 or 1 from Turso — coerce to boolean
     const blocked = Boolean(isBlocked);
     if (!blocked) {
-      // not blocked → open block modal
       setBlockUser(users.find(u => u.id === id));
     } else {
-      // blocked → unblock
       try {
         await adminFetch(`/users/${id}/unblock`, { method: 'PATCH' });
         notify('User unblocked');
@@ -437,31 +468,13 @@ function AdminDashboard({ onLogout }) {
     u.email?.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (selectedUser) {
-    return (
-      <div className="min-h-screen bg-gray-900 text-white">
-        <div className="border-b border-gray-700 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center"><Shield size={16} className="text-white" /></div>
-            <span className="font-bold text-lg">Admin Panel</span>
-          </div>
-          <button onClick={onLogout} className="flex items-center gap-2 text-gray-400 hover:text-red-400 text-sm px-3 py-2 rounded-lg hover:bg-gray-700 transition">
-            <LogOut size={15} /> Logout
-          </button>
-        </div>
-        <UserDetail user={selectedUser} onBack={() => setSelectedUser(null)} />
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-[#0b0f19] bg-grid-pattern text-slate-100 select-none">
       {pwdUser && <PasswordModal user={pwdUser} onClose={() => setPwdUser(null)} onSuccess={(m) => { notify(m); setPwdUser(null); }} />}
       {creditsUser && (
         <CreditsModal user={creditsUser} onClose={() => setCreditsUser(null)}
           onSuccess={(m) => {
             notify(m);
-            // refresh user list to show updated credits
             load();
             setCreditsUser(null);
           }} />
@@ -475,175 +488,232 @@ function AdminDashboard({ onLogout }) {
             setBlockUser(null);
           }} />
       )}
-      <div className="border-b border-gray-700 px-6 py-4 flex items-center justify-between">
+
+      {/* ADMIN NAVIGATION HEADER */}
+      <header className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md px-4 sm:px-6 py-3.5 flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center"><Shield size={16} className="text-white" /></div>
-          <span className="font-bold text-lg">Admin Panel</span>
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500/40 transition"
+            title="Return to Main App"
+          >
+            <ArrowLeft size={14} /> Main App
+          </button>
+
+          <div className="h-5 w-[1px] bg-slate-800 hidden sm:block" />
+
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-600 to-indigo-600 flex items-center justify-center shadow-md">
+              <Shield size={16} className="text-white" />
+            </div>
+            <span className="font-heading font-extrabold text-sm sm:text-base text-white">Admin Portal</span>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={load} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-700 transition"><RefreshCw size={16} /></button>
-          <button onClick={onLogout} className="flex items-center gap-2 text-gray-400 hover:text-red-400 text-sm px-3 py-2 rounded-lg hover:bg-gray-700 transition"><LogOut size={15} /> Logout</button>
+
+        {/* Header Right Actions */}
+        <div className="flex items-center gap-2">
+          <button onClick={load} className="text-slate-400 hover:text-white p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 transition" title="Refresh Dashboard">
+            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <button onClick={onLogout} className="flex items-center gap-1.5 text-slate-400 hover:text-rose-400 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 transition">
+            <LogOut size={14} /> Logout
+          </button>
         </div>
-      </div>
+      </header>
+
+      {/* MAIN ADMIN CONTENT */}
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {msg && <div className="bg-green-900/40 border border-green-700 text-green-300 text-sm px-4 py-2 rounded-lg">{msg}</div>}
-        {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard icon={<Users size={22} className="text-white" />} label="Total Users" value={stats.totalUsers} color="bg-blue-600" />
-            <StatCard icon={<MessageSquare size={22} className="text-white" />} label="Conversations" value={stats.totalConversations} color="bg-green-600" />
-            <StatCard icon={<BarChart2 size={22} className="text-white" />} label="Messages" value={stats.totalMessages} color="bg-purple-600" />
-            <StatCard icon={<Lock size={22} className="text-white" />} label="Blocked" value={stats.blockedUsers} color="bg-red-600" />
+        {msg && (
+          <div className="bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-medium px-4 py-2.5 rounded-2xl animate-fadeIn">
+            {msg}
           </div>
         )}
-        <div className="flex gap-2 border-b border-gray-700">
-          <button onClick={() => setTab('users')}
-            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition ${tab === 'users' ? 'bg-gray-800 text-white border border-b-0 border-gray-700' : 'text-gray-400 hover:text-white'}`}>
-            Users ({users.length})
-          </button>
-          <button onClick={() => setTab('feedbacks')}
-            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition flex items-center gap-2 ${tab === 'feedbacks' ? 'bg-gray-800 text-white border border-b-0 border-gray-700' : 'text-gray-400 hover:text-white'}`}>
-            Appeals
-            {feedbacks.filter(f => f.status === 'pending').length > 0 && (
-              <span className="bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {feedbacks.filter(f => f.status === 'pending').length}
-              </span>
-            )}
-          </button>
-        </div>
 
-        {tab === 'users' && (
-          <div className="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-700 flex items-center justify-between gap-4 flex-wrap">
-              <h2 className="font-semibold text-white">All Users ({users.length})</h2>
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..."
-                className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-red-500 w-64" />
-            </div>
-            {loading ? (
-              <div className="flex items-center justify-center py-12 text-gray-400">Loading...</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-700 text-gray-400 text-xs uppercase">
-                      <th className="text-left px-5 py-3">User</th>
-                      <th className="text-left px-5 py-3 hidden md:table-cell">Email</th>
-                      <th className="text-left px-5 py-3 hidden lg:table-cell">Joined</th>
-                      <th className="text-left px-5 py-3">Status</th>
-                      <th className="text-left px-5 py-3 hidden md:table-cell">Credits</th>
-                      <th className="text-left px-5 py-3 hidden md:table-cell">Spam</th>
-                      <th className="text-right px-5 py-3">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((u) => (
-                      <tr key={u.id} className="border-b border-gray-700/50 hover:bg-gray-700/30 transition">
-                        <td className="px-5 py-3">
-                          <button onClick={() => setSelectedUser(u)} className="flex items-center gap-2 hover:text-green-400 transition">
-                            {u.avatar
-                              ? <img src={assetUrl(u.avatar)} alt="" className="w-7 h-7 rounded-full object-cover" />
-                              : <div className="w-7 h-7 bg-green-600 rounded-full flex items-center justify-center text-xs font-bold text-white">{u.username?.[0]?.toUpperCase()}</div>}
-                            <span className="font-medium text-white">{u.username}</span>
-                            <ChevronRight size={13} className="text-gray-500" />
-                          </button>
-                        </td>
-                        <td className="px-5 py-3 text-gray-400 hidden md:table-cell">{u.email}</td>
-                        <td className="px-5 py-3 text-gray-400 hidden lg:table-cell">{fmt(u.created_at)}</td>
-                        <td className="px-5 py-3">
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${u.is_blocked ? 'bg-red-900/50 text-red-400 border border-red-800' : 'bg-green-900/50 text-green-400 border border-green-800'}`}>
-                            {u.is_blocked ? 'Blocked' : 'Active'}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3 hidden md:table-cell">
-                          <span className="text-xs font-medium text-yellow-400">⚡ {u.credits ?? 0}</span>
-                        </td>
-                        <td className="px-5 py-3 hidden md:table-cell">
-                          {Number(u.spam_count) > 0 ? (
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${
-                              Number(u.spam_count) >= 2
-                                ? 'bg-red-900/50 text-red-400 border-red-800'
-                                : 'bg-yellow-900/50 text-yellow-400 border-yellow-800'
-                            }`}>
-                              ⚠️ {u.spam_count} strike{Number(u.spam_count) !== 1 ? 's' : ''}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-gray-600">—</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-3">
-                          <div className="flex items-center justify-end gap-2">
-                            <button onClick={() => setPwdUser(u)} className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-900/30 transition" title="Reset password"><Key size={15} /></button>
-                            <button onClick={() => setCreditsUser(u)} className="p-1.5 rounded-lg text-yellow-400 hover:bg-yellow-900/30 transition" title="Add credits"><Zap size={15} /></button>
-                            <button onClick={() => handleBlock(u.id, u.is_blocked)}
-                              className={`p-1.5 rounded-lg transition ${u.is_blocked ? 'text-red-400 hover:bg-green-900/30 hover:text-green-400' : 'text-gray-400 hover:bg-red-900/30 hover:text-red-400'}`}
-                              title={u.is_blocked ? 'Click to unblock' : 'Click to block'}>
-                              {u.is_blocked ? <ShieldOff size={15} /> : <ShieldCheck size={15} />}
-                            </button>
-                            <button onClick={() => handleDelete(u.id, u.username)} className="p-1.5 rounded-lg text-red-400 hover:bg-red-900/30 transition" title="Delete"><Trash2 size={15} /></button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {filtered.length === 0 && <tr><td colSpan={7} className="text-center py-8 text-gray-500">No users found</td></tr>}
-                  </tbody>
-                </table>
+        {selectedUser ? (
+          <UserDetail user={selectedUser} onBack={() => setSelectedUser(null)} />
+        ) : (
+          <>
+            {/* Overview Stats */}
+            {stats && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+                <StatCard icon={<Users size={20} className="text-indigo-400" />} label="Total Registered Users" value={stats.totalUsers} color="bg-indigo-950/80 border border-indigo-500/30" />
+                <StatCard icon={<MessageSquare size={20} className="text-purple-400" />} label="Total Conversations" value={stats.totalConversations} color="bg-purple-950/80 border border-purple-500/30" />
+                <StatCard icon={<BarChart2 size={20} className="text-emerald-400" />} label="Total Messages Sent" value={stats.totalMessages} color="bg-emerald-950/80 border border-emerald-500/30" />
+                <StatCard icon={<Lock size={20} className="text-rose-400" />} label="Blocked Users" value={stats.blockedUsers} color="bg-rose-950/80 border border-rose-500/30" />
               </div>
             )}
-          </div>
-        )}
 
-        {tab === 'feedbacks' && (
-          <div className="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-700">
-              <h2 className="font-semibold text-white">User Appeals ({feedbacks.length})</h2>
+            {/* Navigation Tabs */}
+            <div className="flex gap-2 border-b border-slate-800/80">
+              <button
+                onClick={() => setTab('users')}
+                className={`px-4 py-2.5 text-xs font-bold rounded-t-2xl transition-all ${
+                  tab === 'users'
+                    ? 'bg-slate-900 text-indigo-400 border border-b-0 border-slate-800 shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Users Directory ({users.length})
+              </button>
+              <button
+                onClick={() => setTab('feedbacks')}
+                className={`px-4 py-2.5 text-xs font-bold rounded-t-2xl transition-all flex items-center gap-2 ${
+                  tab === 'feedbacks'
+                    ? 'bg-slate-900 text-rose-400 border border-b-0 border-slate-800 shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <span>Appeals</span>
+                {feedbacks.filter((f) => f.status === 'pending').length > 0 && (
+                  <span className="bg-rose-600 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-extrabold">
+                    {feedbacks.filter((f) => f.status === 'pending').length}
+                  </span>
+                )}
+              </button>
             </div>
-            {feedbacks.length === 0 ? (
-              <div className="text-center py-10 text-gray-500">No appeals submitted yet</div>
-            ) : (
-              <div className="divide-y divide-gray-700">
-                {feedbacks.map((f) => (
-                  <div key={f.id} className="p-5">
-                    <div className="flex items-start justify-between gap-4 flex-wrap">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="font-medium text-white">{f.username}</span>
-                          <span className="text-xs text-gray-400">{f.email}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                            f.status === 'pending' ? 'bg-yellow-900/50 text-yellow-400 border border-yellow-800' :
-                            f.status === 'accepted' ? 'bg-green-900/50 text-green-400 border border-green-800' :
-                            'bg-red-900/50 text-red-400 border border-red-800'}`}>{f.status}</span>
-                        </div>
-                        <p className="text-gray-300 text-sm bg-gray-700/50 rounded-lg px-3 py-2 mt-2">{f.message}</p>
-                        {f.admin_reply && <p className="text-gray-400 text-xs mt-2 italic">Reply: {f.admin_reply}</p>}
-                      </div>
-                      {f.status === 'pending' && (
-                        <div className="flex gap-2 shrink-0">
-                          <button onClick={async () => {
-                            const reply = prompt('Message to user:', 'Your appeal has been accepted. You have been unblocked.');
-                            if (reply === null) return;
-                            await adminFetch(`/feedbacks/${f.id}/accept`, { method: 'PATCH', body: JSON.stringify({ reply }) });
-                            notify(`${f.username} unblocked`);
-                            setUsers(prev => prev.map(u => u.id === f.user_id ? { ...u, is_blocked: 0, spam_count: 0 } : u));
-                            load();
-                          }} className="flex items-center gap-1.5 bg-green-600 hover:bg-green-500 text-white text-xs font-medium px-3 py-2 rounded-lg transition">
-                            <CheckCircle size={14} /> Accept
-                          </button>
-                          <button onClick={async () => {
-                            const reply = prompt('Message to user:', 'Your appeal has been reviewed and rejected. You remain blocked.');
-                            if (reply === null) return;
-                            await adminFetch(`/feedbacks/${f.id}/reject`, { method: 'PATCH', body: JSON.stringify({ reply }) });
-                            notify(`${f.username}'s appeal rejected`);
-                            load();
-                          }} className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-medium px-3 py-2 rounded-lg transition">
-                            <XCircle size={14} /> Reject
-                          </button>
-                        </div>
-                      )}
-                    </div>
+
+            {/* Users Tab */}
+            {tab === 'users' && (
+              <div className="glass-card border border-slate-800/80 rounded-3xl overflow-hidden shadow-2xl">
+                <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between gap-4 flex-wrap">
+                  <h2 className="font-heading font-bold text-sm text-white">Registered Users</h2>
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search by username or email..."
+                    className="bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500 w-64"
+                  />
+                </div>
+
+                {loading ? (
+                  <div className="p-8 text-center text-xs text-slate-400">Loading user database...</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-900/90 text-slate-400 uppercase font-semibold border-b border-slate-800">
+                        <tr>
+                          <th className="px-5 py-3">User</th>
+                          <th className="px-5 py-3 hidden lg:table-cell">Joined</th>
+                          <th className="px-5 py-3">Status</th>
+                          <th className="px-5 py-3 hidden md:table-cell">Credits</th>
+                          <th className="px-5 py-3 hidden md:table-cell">Spam Strikes</th>
+                          <th className="px-5 py-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/60">
+                        {filtered.map((u) => (
+                          <tr key={u.id} className="hover:bg-slate-900/50 transition">
+                            <td className="px-5 py-3 cursor-pointer" onClick={() => setSelectedUser(u)}>
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-bold text-white text-xs shadow-md">
+                                  {u.username?.[0]?.toUpperCase() || 'U'}
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-white hover:text-indigo-400 transition">{u.username}</p>
+                                  <p className="text-[11px] text-slate-500">{u.email}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-5 py-3 text-slate-400 hidden lg:table-cell">{fmt(u.created_at)}</td>
+                            <td className="px-5 py-3">
+                              <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${u.is_blocked ? 'bg-rose-950/60 text-rose-400 border border-rose-800' : 'bg-emerald-950/60 text-emerald-400 border border-emerald-800'}`}>
+                                {u.is_blocked ? 'Blocked' : 'Active'}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3 hidden md:table-cell">
+                              <span className="font-semibold text-amber-400">⚡ {u.credits ?? 0}</span>
+                            </td>
+                            <td className="px-5 py-3 hidden md:table-cell">
+                              {Number(u.spam_count) > 0 ? (
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                  Number(u.spam_count) >= 2
+                                    ? 'bg-rose-950/60 text-rose-400 border-rose-800'
+                                    : 'bg-amber-950/60 text-amber-400 border-amber-800'
+                                }`}>
+                                  ⚠️ {u.spam_count} strike{Number(u.spam_count) !== 1 ? 's' : ''}
+                                </span>
+                              ) : (
+                                <span className="text-slate-600">—</span>
+                              )}
+                            </td>
+                            <td className="px-5 py-3">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button onClick={() => setPwdUser(u)} className="p-1.5 rounded-lg text-indigo-400 hover:bg-indigo-950/50 transition" title="Reset password"><Key size={14} /></button>
+                                <button onClick={() => setCreditsUser(u)} className="p-1.5 rounded-lg text-amber-400 hover:bg-amber-950/50 transition" title="Add credits"><Zap size={14} /></button>
+                                <button onClick={() => handleBlock(u.id, u.is_blocked)}
+                                  className={`p-1.5 rounded-lg transition ${u.is_blocked ? 'text-rose-400 hover:bg-emerald-950/50 hover:text-emerald-400' : 'text-slate-400 hover:bg-rose-950/50 hover:text-rose-400'}`}
+                                  title={u.is_blocked ? 'Click to unblock' : 'Click to block'}>
+                                  {u.is_blocked ? <ShieldOff size={14} /> : <ShieldCheck size={14} />}
+                                </button>
+                                <button onClick={() => handleDelete(u.id, u.username)} className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-950/50 transition" title="Delete user"><Trash2 size={14} /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {filtered.length === 0 && <tr><td colSpan={6} className="text-center py-8 text-slate-500">No matching users found</td></tr>}
+                      </tbody>
+                    </table>
                   </div>
-                ))}
+                )}
               </div>
             )}
-          </div>
+
+            {/* Appeals Tab */}
+            {tab === 'feedbacks' && (
+              <div className="glass-card border border-slate-800/80 rounded-3xl overflow-hidden shadow-2xl">
+                <div className="px-5 py-4 border-b border-slate-800">
+                  <h2 className="font-heading font-bold text-sm text-white">User Appeals ({feedbacks.length})</h2>
+                </div>
+                {feedbacks.length === 0 ? (
+                  <div className="text-center py-10 text-slate-500 text-xs">No appeals submitted yet</div>
+                ) : (
+                  <div className="divide-y divide-slate-800/60">
+                    {feedbacks.map((f) => (
+                      <div key={f.id} className="p-5">
+                        <div className="flex items-start justify-between gap-4 flex-wrap">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="font-semibold text-white">{f.username}</span>
+                              <span className="text-xs text-slate-500">{f.email}</span>
+                              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                f.status === 'pending' ? 'bg-amber-950/60 text-amber-400 border border-amber-800' :
+                                f.status === 'accepted' ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800' :
+                                'bg-rose-950/60 text-rose-400 border border-rose-800'}`}>{f.status}</span>
+                            </div>
+                            <p className="text-slate-300 text-xs bg-slate-900/80 border border-slate-800 rounded-xl px-3.5 py-2.5 mt-2 leading-relaxed">{f.message}</p>
+                            {f.admin_reply && <p className="text-slate-400 text-xs mt-2 italic">Admin reply: {f.admin_reply}</p>}
+                          </div>
+                          {f.status === 'pending' && (
+                            <div className="flex gap-2 shrink-0">
+                              <button onClick={async () => {
+                                const reply = prompt('Message to user:', 'Your appeal has been accepted. You have been unblocked.');
+                                if (reply === null) return;
+                                await adminFetch(`/feedbacks/${f.id}/accept`, { method: 'PATCH', body: JSON.stringify({ reply }) });
+                                notify(`${f.username} unblocked`);
+                                setUsers(prev => prev.map(u => u.id === f.user_id ? { ...u, is_blocked: 0, spam_count: 0 } : u));
+                                load();
+                              }} className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow-md">
+                                <CheckCircle size={14} /> Accept
+                              </button>
+                              <button onClick={async () => {
+                                const reply = prompt('Message to user:', 'Your appeal has been reviewed and rejected. You remain blocked.');
+                                if (reply === null) return;
+                                await adminFetch(`/feedbacks/${f.id}/reject`, { method: 'PATCH', body: JSON.stringify({ reply }) });
+                                notify(`${f.username}'s appeal rejected`);
+                                load();
+                              }} className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow-md">
+                                <XCircle size={14} /> Reject
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -653,7 +723,6 @@ function AdminDashboard({ onLogout }) {
 export default function AdminPage() {
   const [loggedIn, setLoggedIn] = useState(false);
 
-  // Always require fresh login on every visit — clear any stored token
   useEffect(() => {
     localStorage.removeItem(ADMIN_KEY);
   }, []);

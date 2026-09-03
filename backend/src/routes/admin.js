@@ -21,10 +21,10 @@ function adminAuth(req, res, next) {
 // POST /api/admin/login — static credentials
 router.post('/login', asyncHandler(async (req, res) => {
   const { username, password } = req.body;
-  if (
-    username !== process.env.ADMIN_USERNAME ||
-    password !== process.env.ADMIN_PASSWORD
-  ) {
+  const expectedUser = process.env.ADMIN_USERNAME || 'admin';
+  const expectedPass = process.env.ADMIN_PASSWORD || 'admin123';
+
+  if (username !== expectedUser || password !== expectedPass) {
     return res.status(401).json({ error: 'Invalid admin credentials' });
   }
   const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '8h' });

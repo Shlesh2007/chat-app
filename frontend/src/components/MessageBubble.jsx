@@ -40,6 +40,31 @@ function ImageBlock({ prompt }) {
     }
   };
 
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    if (!imageUrl || downloading) return;
+    setDownloading(true);
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      const cleanFileName = prompt.slice(0, 25).replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'ai_image';
+      link.download = `${cleanFileName}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      window.open(imageUrl, '_blank');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const handleRetry = () => {
     const nextRetry = retryCount + 1;
     setRetryCount(nextRetry);
@@ -92,15 +117,24 @@ function ImageBlock({ prompt }) {
             className="w-full max-h-96 object-contain bg-slate-950"
             onError={() => setError('Image link timed out from server.')}
           />
-          <a
-            href={imageUrl}
-            download="ai-generated-image.jpg"
-            target="_blank"
-            rel="noreferrer"
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
             className="absolute bottom-3 right-3 bg-slate-900/90 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-1.5 text-xs font-semibold shadow-lg backdrop-blur-md border border-slate-700"
+            title="Download image to local computer"
           >
-            <Download size={14} /> Save Image
-          </a>
+            {downloading ? (
+              <>
+                <Loader size={14} className="animate-spin text-indigo-300" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <Download size={14} />
+                <span>Save Image</span>
+              </>
+            )}
+          </button>
         </div>
       )}
     </div>
