@@ -13,35 +13,42 @@ export default function RegisterPage() {
   const [oauthLoading, setOauthLoading] = useState(null); // 'google' | 'github' | null
 
   const register = useAuthStore((s) => s.register);
-  const oauthLogin = useAuthStore((s) => s.oauthLogin);
   const loginWithGoogleToken = useAuthStore((s) => s.loginWithGoogleToken);
   const loginWithGithubCode = useAuthStore((s) => s.loginWithGithubCode);
   const navigate = useNavigate();
 
-  // Check if returning from Google/GitHub Real OAuth redirects
+  // Listen for Real OAuth Popup completion postMessages
   useEffect(() => {
-    // 1. Check for GitHub OAuth ?code=...
-    const params = new URLSearchParams(window.location.search);
-    const githubCode = params.get('code');
-    if (githubCode) {
-      setOauthLoading('github');
-      loginWithGithubCode(githubCode)
-        .then(() => navigate('/'))
-        .catch((err) => setError(err.response?.data?.error || 'GitHub OAuth failed.'))
-        .finally(() => setOauthLoading(null));
-      return;
-    }
+    const handleOAuthMessage = async (event) => {
+      if (event.origin !== window.location.origin) return;
 
-    // 2. Check for Google OAuth #access_token=...
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const googleToken = hashParams.get('access_token');
-    if (googleToken) {
-      setOauthLoading('google');
-      loginWithGoogleToken(googleToken)
-        .then(() => navigate('/'))
-        .catch((err) => setError(err.response?.data?.error || 'Google OAuth failed.'))
-        .finally(() => setOauthLoading(null));
-    }
+      const { type, accessToken, code } = event.data || {};
+
+      if (type === 'OAUTH_GOOGLE_SUCCESS' && accessToken) {
+        setOauthLoading('google');
+        try {
+          await loginWithGoogleToken(accessToken);
+          navigate('/');
+        } catch (err) {
+          setError(err.response?.data?.error || 'Failed to verify Google account details.');
+        } fontally {
+          setOauthLoading(null);
+        }
+      } else if (type === 'OAUTH_GITHUB_SUCCESS' && code) {
+        setOauthLoading('github');
+        try {
+          await loginWithGithubCode(code);
+          navigate('/');
+        } catch (err) {
+          setError(err.response?.data?.error || 'Failed to verify GitHub account details.');
+        } finally {
+          setOauthLoading(null);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleOAuthMessage);
+    return () => window.removeEventListener('message', handleOAuthMessage);
   }, []);
 
   const handleSubmit = async (e) => {
@@ -62,44 +69,35 @@ export default function RegisterPage() {
     }
   };
 
-  const handleOAuth = async (provider) => {
+  const handleOAuth = (provider) => {
     setError('');
     setOauthLoading(provider);
 
+    const width = 500;
+    const height = 600;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
+
     if (provider === 'google') {
       const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1082937482910-chatappdemo.apps.googleusercontent.com';
-      const redirectUri = window.location.origin + '/register';
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile`;
+      const redirectUri = window.location.origin + '/oauth-callback.html';
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent('openid email profile')}&prompt=select_account`;
 
-      if (googleClientId.includes('demo')) {
-        try {
-          await oauthLogin('google', 'shlesh.darji@gmail.com', 'Shlesh_Darji');
-          navigate('/');
-        } catch (err) {
-          setError('Google OAuth sign up failed.');
-        } finally {
-          setOauthLoading(null);
-        }
-      } else {
-        window.location.href = googleAuthUrl;
-      }
+      window.open(
+        googleAuthUrl,
+        'Google OAuth Sign In',
+        `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,status=yes`
+      );
     } else if (provider === 'github') {
       const githubClientId = import.meta.env.VITE_GITHUB_CLIENT_ID || 'demo';
-      const redirectUri = window.location.origin + '/register';
+      const redirectUri = window.location.origin + '/oauth-callback.html';
       const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${githubClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`;
 
-      if (githubClientId === 'demo') {
-        try {
-          await oauthLogin('github', 'shlesh.dev@github.com', 'Shlesh_GitHub');
-          navigate('/');
-        } catch (err) {
-          setError('GitHub OAuth sign up failed.');
-        } finally {
-          setOauthLoading(null);
-        }
-      } else {
-        window.location.href = githubAuthUrl;
-      }
+      window.open(
+        githubAuthUrl,
+        'GitHub OAuth Sign In',
+        `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,status=yes`
+      );
     }
   };
 
@@ -135,7 +133,7 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* OAuth Social Buttons */}
+          {/* Real OAuth Social Buttons */}
           <div className="space-y-3 mb-5">
             {/* Google OAuth */}
             <button
@@ -280,7 +278,7 @@ export default function RegisterPage() {
           <span>•</span>
           <div className="flex items-center gap-1">
             <Shield size={13} className="text-emerald-400" />
-            <span>Real OAuth 2.0</span>
+            <span>Real Google & GitHub OAuth</span>
           </div>
         </div>
       </div>

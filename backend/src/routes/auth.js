@@ -77,6 +77,9 @@ router.post('/google', asyncHandler(async (req, res) => {
       args: [userId, username, email, passwordHash, avatar || ''],
     });
     user = { id: userId, username, email, credits: 100, avatar };
+  } else if (avatar && !user.avatar) {
+    await db.execute({ sql: 'UPDATE users SET avatar=? WHERE id=?', args: [avatar, user.id] });
+    user.avatar = avatar;
   }
 
   const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });

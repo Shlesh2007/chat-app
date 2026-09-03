@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Authenticating with OAuth...</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #0b0f19;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-left-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="spinner"></div>
+  <p>Authenticating account... Please wait.</p>
+
+  <script>
+    (function() {
+      // 1. Check for Google OAuth Access Token in URL hash (#access_token=...)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+
+      // 2. Check for GitHub OAuth Code in URL search query (?code=...)
+      const searchParams = new URLSearchParams(window.location.search);
+      const githubCode = searchParams.get('code');
+
+      if (accessToken && window.opener) {
+        window.opener.postMessage({ type: 'OAUTH_GOOGLE_SUCCESS', accessToken: accessToken }, '*');
+        window.close();
+      } else if (githubCode && window.opener) {
+        window.opener.postMessage({ type: 'OAUTH_GITHUB_SUCCESS', code: githubCode }, '*');
+        window.close();
+      } else {
+        setTimeout(function() {
+          if (window.opener) {
+            window.opener.postMessage({ type: 'OAUTH_FAILED', error: 'Authentication cancelled or token missing' }, '*');
+            window.close();
+          }
+        }, 1500);
+      }
+    })();
+  </script>
+</body>
+</html>
