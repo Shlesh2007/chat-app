@@ -171,7 +171,7 @@ export default function ChatInput({ inputRef: externalRef }) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask AI anything, generate images, analyze files..."
+            placeholder="Ask AI anything..."
             rows={1}
             disabled={isStreaming}
             className="flex-1 bg-transparent theme-text-heading placeholder-opacity-60 text-sm focus:outline-none resize-none py-1.5 px-1 leading-relaxed max-h-44 scrollbar-thin"
