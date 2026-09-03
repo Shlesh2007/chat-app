@@ -2,7 +2,10 @@
 
 A state-of-the-art, full-stack AI chat application built by **Shlesh Darji**, CSE student at LJ University.
 
-[![Live Application](https://img.shields.io/badge/Live_App-Vercel-6366f1?style=for-the-badge&logo=vercel)](https://chatapp-pi-woad.vercel.app/)
+🌐 **Official Live Website**: [https://chatapp-pi-woad.vercel.app](https://chatapp-pi-woad.vercel.app/)  
+⚙️ **Backend API Service**: [https://chat-app-fn2c.onrender.com](https://chat-app-fn2c.onrender.com)
+
+[![Live Application](https://img.shields.io/badge/Live_App-https%3A%2F%2Fchatapp--pi--woad.vercel.app-6366f1?style=for-the-badge&logo=vercel)](https://chatapp-pi-woad.vercel.app/)
 [![Backend API](https://img.shields.io/badge/Backend_API-Render-06b6d4?style=for-the-badge&logo=render)](https://chat-app-fn2c.onrender.com)
 
 ---
