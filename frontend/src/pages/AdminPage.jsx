@@ -288,21 +288,25 @@ function UserDetail({ user, onBack }) {
 
   useEffect(() => {
     adminFetch(`/users/${user.id}/conversations`)
-      .then(d => { setConversations(d.conversations); setLoadingConvs(false); })
-      .catch(() => setLoadingConvs(false));
+      .then(d => { setConversations(Array.isArray(d?.conversations) ? d.conversations : []); setLoadingConvs(false); })
+      .catch(() => { setConversations([]); setLoadingConvs(false); });
 
     adminFetch(`/users/${user.id}/spam-logs`)
-      .then(d => setSpamLogs(d.spamLogs))
-      .catch(() => {});
+      .then(d => setSpamLogs(Array.isArray(d?.spamLogs) ? d.spamLogs : Array.isArray(d?.logs) ? d.logs : []))
+      .catch(() => setSpamLogs([]));
   }, [user.id]);
 
   const loadMessages = (conv) => {
     setSelectedConv(conv);
     setLoadingMsgs(true);
     adminFetch(`/conversations/${conv.id}/messages`)
-      .then(d => { setMessages(d.messages); setLoadingMsgs(false); })
-      .catch(() => setLoadingMsgs(false));
+      .then(d => { setMessages(Array.isArray(d?.messages) ? d.messages : []); setLoadingMsgs(false); })
+      .catch(() => { setMessages([]); setLoadingMsgs(false); });
   };
+
+  const safeConvs = Array.isArray(conversations) ? conversations : [];
+  const safeLogs = Array.isArray(spamLogs) ? spamLogs : [];
+  const safeMsgs = Array.isArray(messages) ? messages : [];
 
   return (
     <div className="space-y-6 animate-fadeIn select-none">
@@ -329,10 +333,10 @@ function UserDetail({ user, onBack }) {
         {/* Tab selector inside user details */}
         <div className="flex gap-2">
           <button onClick={() => setDetailTab('conversations')} className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition ${detailTab === 'conversations' ? 'bg-indigo-600 text-white shadow-md' : 'glass-card theme-text-muted hover:theme-text-heading'}`}>
-            Chats ({conversations.length})
+            Chats ({safeConvs.length})
           </button>
           <button onClick={() => setDetailTab('spam')} className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition ${detailTab === 'spam' ? 'bg-rose-600 text-white shadow-md' : 'glass-card theme-text-muted hover:theme-text-heading'}`}>
-            Spam Logs ({spamLogs.length})
+            Spam Logs ({safeLogs.length})
           </button>
         </div>
       </div>
@@ -340,11 +344,11 @@ function UserDetail({ user, onBack }) {
       {detailTab === 'spam' && (
         <div className="glass-card rounded-3xl p-6 shadow-xl">
           <h3 className="font-semibold theme-text-heading text-sm mb-4">Spam Violation Logs</h3>
-          {spamLogs.length === 0 ? (
+          {safeLogs.length === 0 ? (
             <p className="theme-text-muted text-xs">No spam violations logged for this user.</p>
           ) : (
             <div className="space-y-3">
-              {spamLogs.map((log) => (
+              {safeLogs.map((log) => (
                 <div key={log.id} className="glass-card rounded-xl p-3.5 text-xs space-y-1">
                   <div className="flex justify-between theme-text-muted">
                     <span>{fmt(log.created_at)}</span>
@@ -366,13 +370,13 @@ function UserDetail({ user, onBack }) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="glass-card rounded-3xl overflow-hidden shadow-xl">
             <div className="px-4 py-3 border-b border-opacity-20">
-              <h3 className="font-semibold theme-text-heading text-xs uppercase tracking-wider">Conversations ({conversations.length})</h3>
+              <h3 className="font-semibold theme-text-heading text-xs uppercase tracking-wider">Conversations ({safeConvs.length})</h3>
             </div>
             {loadingConvs ? <div className="p-4 theme-text-muted text-xs">Loading...</div>
-              : conversations.length === 0 ? <div className="p-4 theme-text-muted text-xs">No conversations</div>
+              : safeConvs.length === 0 ? <div className="p-4 theme-text-muted text-xs">No conversations</div>
               : (
                 <div className="overflow-y-auto max-h-96">
-                  {conversations.map((c) => (
+                  {safeConvs.map((c) => (
                     <button key={c.id} onClick={() => loadMessages(c)}
                       className={`w-full text-left px-4 py-3 border-b border-opacity-10 hover:glass-card-hover transition flex items-center justify-between ${selectedConv?.id === c.id ? 'bg-indigo-600/20 theme-text-heading font-bold' : 'theme-text-muted'}`}>
                       <div className="flex-1 min-w-0">
@@ -393,8 +397,8 @@ function UserDetail({ user, onBack }) {
             <div className="overflow-y-auto max-h-96 p-4 space-y-3">
               {loadingMsgs ? <div className="theme-text-muted text-xs">Loading...</div>
                 : !selectedConv ? <div className="theme-text-muted text-xs">Click a conversation on the left to view messages</div>
-                : messages.length === 0 ? <div className="theme-text-muted text-xs">No messages found</div>
-                : messages.map((m) => (
+                : safeMsgs.length === 0 ? <div className="theme-text-muted text-xs">No messages found</div>
+                : safeMsgs.map((m) => (
                   <div key={m.id} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${m.role === 'user' ? 'bg-indigo-600' : 'bg-purple-600'}`}>
                       {m.role === 'user' ? <User size={13} className="text-white" /> : <Bot size={13} className="text-white" />}

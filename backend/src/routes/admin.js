@@ -186,7 +186,7 @@ router.get('/users/:id/spam-logs', adminAuth, asyncHandler(async (req, res) => {
     sql: 'SELECT * FROM spam_logs WHERE user_id=? ORDER BY created_at DESC',
     args: [req.params.id],
   });
-  res.json({ logs: result.rows });
+  res.json({ spamLogs: result.rows, logs: result.rows });
 }));
 
 // GET /api/admin/conversations/:id/messages
