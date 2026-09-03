@@ -73,12 +73,14 @@ export default function LoginPage() {
     const left = window.screen.width / 2 - width / 2;
     const top = window.screen.height / 2 - height / 2;
 
+    let popup = null;
+
     if (provider === 'google') {
       const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '311510791510-57sj4ek9rsf5tec7meqigl93sqbqcu1b.apps.googleusercontent.com';
       const redirectUri = window.location.origin + '/oauth-callback.html';
       const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent('openid email profile')}&prompt=select_account`;
 
-      window.open(
+      popup = window.open(
         googleAuthUrl,
         'Google OAuth Sign In',
         `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,status=yes`
@@ -88,11 +90,22 @@ export default function LoginPage() {
       const redirectUri = window.location.origin + '/oauth-callback.html';
       const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${githubClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`;
 
-      window.open(
+      popup = window.open(
         githubAuthUrl,
         'GitHub OAuth Sign In',
         `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,status=yes`
       );
+    }
+
+    if (popup) {
+      const timer = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(timer);
+          setOauthLoading(null);
+        }
+      }, 500);
+    } else {
+      setOauthLoading(null);
     }
   };
 
