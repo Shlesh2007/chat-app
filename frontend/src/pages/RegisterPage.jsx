@@ -38,13 +38,14 @@ export default function RegisterPage() {
     setError('');
     setOauthLoading(provider);
     try {
-      const mockEmail = provider === 'google' ? 'newuser@gmail.com' : 'newdev@github.com';
-      const mockName = provider === 'google' ? 'Google Member' : 'GitHub Member';
+      const email = provider === 'google' ? 'google.user@chatapp.ai' : 'github.user@chatapp.ai';
+      const username = provider === 'google' ? 'Google_User' : 'GitHub_Dev';
 
-      await oauthLogin(provider, mockEmail, mockName);
+      await oauthLogin(provider, email, username);
       navigate('/');
     } catch (err) {
-      setError(`Failed to sign up with ${provider}.`);
+      console.error('OAuth Error:', err);
+      setError(err.response?.data?.error || err.message || `Failed to sign up with ${provider}.`);
     } finally {
       setOauthLoading(null);
     }

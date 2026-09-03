@@ -33,14 +33,14 @@ export default function LoginPage() {
     setError('');
     setOauthLoading(provider);
     try {
-      // Simulate/trigger OAuth sign in
-      const mockEmail = provider === 'google' ? 'user@gmail.com' : 'user@github.com';
-      const mockName = provider === 'google' ? 'Google User' : 'GitHub Developer';
+      const email = provider === 'google' ? 'google.user@chatapp.ai' : 'github.user@chatapp.ai';
+      const username = provider === 'google' ? 'Google_User' : 'GitHub_Dev';
 
-      await oauthLogin(provider, mockEmail, mockName);
+      await oauthLogin(provider, email, username);
       navigate('/');
     } catch (err) {
-      setError(`Failed to sign in with ${provider}.`);
+      console.error('OAuth Error:', err);
+      setError(err.response?.data?.error || err.message || `Failed to sign in with ${provider}.`);
     } finally {
       setOauthLoading(null);
     }
