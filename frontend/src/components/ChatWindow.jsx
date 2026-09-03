@@ -18,8 +18,8 @@ export default function ChatWindow() {
     : '';
 
   return (
-    <div className="flex-1 overflow-y-auto scrollbar-thin px-2">
-      <div className="max-w-3xl mx-auto px-2 sm:px-4 py-6">
+    <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-thin px-2">
+      <div className="max-w-3xl mx-auto px-2 sm:px-4 pt-12 sm:pt-4 pb-4">
 
         {/* Suggestions when chat is empty */}
         {messages.length === 0 && !isStreaming && (

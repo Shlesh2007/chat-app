@@ -46,9 +46,6 @@ export default function ChatPage() {
         {/* Ambient Top Glow */}
         <div className="hidden sm:block absolute top-0 right-1/4 w-96 h-32 bg-indigo-600/10 blur-[100px] pointer-events-none" />
 
-        {/* Mobile Header Spacer */}
-        <div className="md:hidden h-12 shrink-0" />
-
         {/* Main View Area */}
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
           {activeConversationId ? <ChatWindow /> : <WelcomeScreen onNewChat={handleNewChat} />}
