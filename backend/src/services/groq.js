@@ -35,7 +35,7 @@ export async function streamGroqResponse(messages, onChunk) {
 export async function moderateMessage(text) {
   try {
     const response = await client.chat.completions.create({
-      model: 'llama-3.1-8b-instant', // fast small model for moderation
+      model: GROQ_MODEL, // fast model for moderation
       messages: [
         {
           role: 'system',
