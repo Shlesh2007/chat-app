@@ -10,61 +10,61 @@ const suggestions = [
 
 export default function WelcomeScreen({ onNewChat }) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4 py-12 bg-grid-pattern relative overflow-hidden select-none">
+    <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 sm:py-12 bg-grid-pattern relative overflow-y-auto select-none">
       {/* Background Ambient Glow Orbs */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/15 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-600/15 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 sm:w-96 h-72 sm:h-96 bg-indigo-600/15 blur-[100px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-60 sm:w-80 h-60 sm:h-80 bg-purple-600/15 blur-[100px] rounded-full pointer-events-none" />
 
       {/* Hero Icon */}
-      <div className="relative mb-6 group cursor-pointer" onClick={onNewChat}>
+      <div className="relative mb-5 group cursor-pointer" onClick={onNewChat}>
         <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-70 blur-md group-hover:opacity-100 transition duration-500 animate-pulseGlow" />
-        <div className="relative w-20 h-20 glass-card rounded-3xl flex items-center justify-center shadow-2xl">
-          <Bot size={42} className="text-indigo-400 group-hover:scale-110 transition-transform duration-300" />
+        <div className="relative w-16 h-16 sm:w-20 sm:h-20 glass-card rounded-3xl flex items-center justify-center shadow-2xl">
+          <Bot size={36} className="text-indigo-400 sm:w-10 sm:h-10 group-hover:scale-110 transition-transform duration-300" />
         </div>
       </div>
 
       {/* Main Title & Subtitle */}
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-extrabold text-center mb-3 tracking-tight animate-slideUp theme-text-heading">
+      <h1 className="text-2xl sm:text-4xl md:text-5xl font-heading font-extrabold text-center mb-2 sm:mb-3 tracking-tight animate-slideUp theme-text-heading">
         Meet Your <span className="gradient-text">AI Assistant</span>
       </h1>
-      <p className="theme-text-muted text-sm sm:text-base text-center max-w-md mb-8 animate-slideUp" style={{ animationDelay: '50ms' }}>
+      <p className="theme-text-muted text-xs sm:text-base text-center max-w-md mb-6 sm:mb-8 animate-slideUp px-2" style={{ animationDelay: '50ms' }}>
         Built by <span className="font-semibold theme-text-heading">Shlesh Darji</span> · LJ University · Supercharged by <span className="text-indigo-400 font-semibold">Groq</span>
       </p>
 
-      {/* Feature Capabilities */}
-      <div className="flex flex-wrap justify-center gap-2.5 mb-10 max-w-xl animate-slideUp" style={{ animationDelay: '100ms' }}>
-        <div className="flex items-center gap-2 glass-card rounded-full px-4 py-1.5 text-xs font-medium theme-text-muted shadow-md">
-          <Zap size={14} className="text-amber-400" />
+      {/* Feature Capabilities Pill Cluster */}
+      <div className="flex flex-wrap justify-center gap-2 mb-8 max-w-lg animate-slideUp px-2" style={{ animationDelay: '100ms' }}>
+        <div className="flex items-center gap-1.5 glass-card rounded-full px-3 py-1 sm:px-4 sm:py-1.5 text-[11px] sm:text-xs font-medium theme-text-muted shadow-sm">
+          <Zap size={13} className="text-amber-400 shrink-0" />
           <span>Real-time Ultra Streaming</span>
         </div>
-        <div className="flex items-center gap-2 glass-card rounded-full px-4 py-1.5 text-xs font-medium theme-text-muted shadow-md">
-          <FileText size={14} className="text-indigo-400" />
+        <div className="flex items-center gap-1.5 glass-card rounded-full px-3 py-1 sm:px-4 sm:py-1.5 text-[11px] sm:text-xs font-medium theme-text-muted shadow-sm">
+          <FileText size={13} className="text-indigo-400 shrink-0" />
           <span>PDF, Code & Excel Analysis</span>
         </div>
-        <div className="flex items-center gap-2 glass-card rounded-full px-4 py-1.5 text-xs font-medium theme-text-muted shadow-md">
-          <Image size={14} className="text-purple-400" />
+        <div className="flex items-center gap-1.5 glass-card rounded-full px-3 py-1 sm:px-4 sm:py-1.5 text-[11px] sm:text-xs font-medium theme-text-muted shadow-sm">
+          <Image size={13} className="text-purple-400 shrink-0" />
           <span>Text-to-Image Generation</span>
         </div>
       </div>
 
-      {/* Suggestion Prompt Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full max-w-2xl px-2">
+      {/* Suggestion Prompt Cards Grid — Optimized for Mobile */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl px-1">
         {suggestions.map((item, idx) => (
           <button
             key={item.title}
             onClick={onNewChat}
-            className="group text-left glass-card glass-card-hover rounded-2xl p-4 transition-all duration-300 flex flex-col justify-between"
+            className="group text-left glass-card glass-card-hover rounded-2xl p-3.5 sm:p-4 transition-all duration-300 flex flex-col justify-between h-full min-h-[96px] shadow-sm border border-opacity-20"
             style={{ animation: `slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${0.15 + idx * 0.05}s both` }}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-lg">{item.icon}</span>
-              <ArrowRight size={14} className="theme-text-muted group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" />
+              <span className="text-base sm:text-lg">{item.icon}</span>
+              <ArrowRight size={14} className="theme-text-muted group-hover:text-indigo-400 group-hover:translate-x-1 transition-all shrink-0" />
             </div>
-            <div>
-              <p className="text-xs font-semibold theme-text-heading group-hover:text-indigo-400 transition-colors mb-1">
+            <div className="flex-1 flex flex-col justify-end">
+              <p className="text-xs font-bold theme-text-heading group-hover:text-indigo-400 transition-colors mb-0.5">
                 {item.title}
               </p>
-              <p className="text-[12px] theme-text-muted line-clamp-2 leading-relaxed">
+              <p className="text-[11px] sm:text-[12px] theme-text-muted line-clamp-2 leading-snug">
                 "{item.prompt}"
               </p>
             </div>
