@@ -1,15 +1,17 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.js';
-import { ArrowLeft, Camera, Trash2, AlertTriangle, Sparkles, Check, Shield } from 'lucide-react';
+import { ArrowLeft, Camera, Trash2, AlertTriangle, Sparkles, Check, Palette } from 'lucide-react';
 import api from '../lib/api.js';
 import { assetUrl } from '../lib/utils.js';
+import { THEMES, applyTheme, getStoredTheme } from '../lib/theme.js';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, updateUser, logout } = useAuthStore();
   const [username, setUsername] = useState(user?.username || '');
   const [autoDelete, setAutoDelete] = useState(!!user?.auto_delete);
+  const [currentTheme, setCurrentTheme] = useState(getStoredTheme());
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [success, setSuccess] = useState('');
@@ -19,6 +21,14 @@ export default function ProfilePage() {
 
   const avatarUrl = assetUrl(user?.avatar);
   const initials = user?.username?.[0]?.toUpperCase() || 'U';
+
+  const handleThemeChange = (themeId) => {
+    const updated = applyTheme(themeId);
+    setCurrentTheme(updated);
+    const themeName = THEMES.find(t => t.id === themeId)?.name;
+    setSuccess(`Theme updated to ${themeName}`);
+    setTimeout(() => setSuccess(''), 3000);
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -93,16 +103,54 @@ export default function ProfilePage() {
 
         {/* Feedback Messages */}
         {success && (
-          <div className="bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-medium px-4 py-3 rounded-2xl flex items-center gap-2">
+          <div className="bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-medium px-4 py-3 rounded-2xl flex items-center gap-2 animate-fadeIn">
             <Check size={16} className="text-emerald-400" />
             <span>{success}</span>
           </div>
         )}
         {error && (
-          <div className="bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs font-medium px-4 py-3 rounded-2xl">
+          <div className="bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs font-medium px-4 py-3 rounded-2xl animate-fadeIn">
             {error}
           </div>
         )}
+
+        {/* Theme Customization Section */}
+        <div className="glass-card rounded-3xl p-6 border border-slate-800/80 shadow-xl">
+          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Palette size={16} className="text-indigo-400" />
+            Theme & Appearance
+          </h2>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {THEMES.map((t) => {
+              const isSelected = currentTheme === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => handleThemeChange(t.id)}
+                  className={`group relative text-left p-3.5 rounded-2xl border transition-all duration-200 flex flex-col justify-between ${
+                    isSelected
+                      ? 'bg-indigo-600/20 border-indigo-500 shadow-lg shadow-indigo-950/50 scale-[1.02]'
+                      : 'bg-slate-900/80 border-slate-800 hover:border-slate-700 hover:scale-[1.01]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-2xl">{t.icon}</span>
+                    {isSelected && (
+                      <span className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-white">
+                        <Check size={12} />
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-white mb-0.5">{t.name}</p>
+                    <p className="text-[10px] text-slate-400 leading-tight">{t.desc}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Avatar Section */}
         <div className="glass-card rounded-3xl p-6 border border-slate-800/80 shadow-xl">

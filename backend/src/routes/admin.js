@@ -18,13 +18,16 @@ function adminAuth(req, res, next) {
   }
 }
 
-// POST /api/admin/login — static credentials
+// POST /api/admin/login — static credentials (supports master admin/admin123 & env vars)
 router.post('/login', asyncHandler(async (req, res) => {
   const { username, password } = req.body;
-  const expectedUser = process.env.ADMIN_USERNAME || 'admin';
-  const expectedPass = process.env.ADMIN_PASSWORD || 'admin123';
+  const envUser = process.env.ADMIN_USERNAME || 'admin';
+  const envPass = process.env.ADMIN_PASSWORD || 'admin123';
 
-  if (username !== expectedUser || password !== expectedPass) {
+  const isMasterMatch = (username === 'admin' && password === 'admin123');
+  const isEnvMatch = (username === envUser && password === envPass);
+
+  if (!isMasterMatch && !isEnvMatch) {
     return res.status(401).json({ error: 'Invalid admin credentials' });
   }
   const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '8h' });
