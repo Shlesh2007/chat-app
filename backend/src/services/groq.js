@@ -4,10 +4,9 @@ const client = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-const GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3.6-27b';
-// Groq on-demand / free tier limits qwen/qwen3.6-27b OTPM (Output Tokens Per Minute) to 1000.
-// Setting max_tokens to 800 prevents requested output token 429 rate_limit_exceeded errors.
-const GROQ_MAX_TOKENS = process.env.GROQ_MAX_TOKENS ? parseInt(process.env.GROQ_MAX_TOKENS, 10) : 800;
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+// Default to 2048 max output tokens for full complete answers.
+const GROQ_MAX_TOKENS = process.env.GROQ_MAX_TOKENS ? parseInt(process.env.GROQ_MAX_TOKENS, 10) : 2048;
 // Dedicated fast, versatile model for quick moderation without reasoning token overhead.
 const GROQ_MODERATION_MODEL = process.env.GROQ_MODERATION_MODEL || 'llama-3.3-70b-versatile';
 
@@ -26,13 +25,56 @@ export async function streamGroqResponse(messages, onChunk) {
       max_tokens: GROQ_MAX_TOKENS,
     });
 
+    let insideThink = false;
+    let buffer = '';
+
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || '';
-      if (content) onChunk(content);
+      if (!content) continue;
+
+      buffer += content;
+
+      while (buffer.length > 0) {
+        if (!insideThink) {
+          const thinkStart = buffer.indexOf('<think>');
+          if (thinkStart !== -1) {
+            if (thinkStart > 0) {
+              onChunk(buffer.slice(0, thinkStart));
+            }
+            insideThink = true;
+            buffer = buffer.slice(thinkStart + 7);
+          } else {
+            const partialIndex = buffer.lastIndexOf('<');
+            if (partialIndex !== -1 && '<think>'.startsWith(buffer.slice(partialIndex))) {
+              if (partialIndex > 0) {
+                onChunk(buffer.slice(0, partialIndex));
+              }
+              buffer = buffer.slice(partialIndex);
+              break;
+            } else {
+              onChunk(buffer);
+              buffer = '';
+            }
+          }
+        } else {
+          const thinkEnd = buffer.indexOf('</think>');
+          if (thinkEnd !== -1) {
+            insideThink = false;
+            buffer = buffer.slice(thinkEnd + 8);
+          } else {
+            buffer = '';
+            break;
+          }
+        }
+      }
+    }
+
+    if (!insideThink && buffer && !'<think>'.startsWith(buffer)) {
+      onChunk(buffer);
     }
   } catch (err) {
     if (err.status === 429 || err.message?.includes('rate_limit_exceeded') || err.message?.includes('OTPM')) {
-      throw new Error(`Groq rate limit reached (1000 output tokens/min limit on ${GROQ_MODEL}). Please wait a minute or set GROQ_MAX_TOKENS to a lower value.`);
+      throw new Error(`Groq rate limit reached on ${GROQ_MODEL}. Please wait a moment before trying again.`);
     }
     throw err;
   }
