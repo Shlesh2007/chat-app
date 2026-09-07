@@ -5,6 +5,11 @@ const client = new Groq({
 });
 
 const GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3.6-27b';
+// Groq on-demand / free tier limits qwen/qwen3.6-27b OTPM (Output Tokens Per Minute) to 1000.
+// Setting max_tokens to 800 prevents requested output token 429 rate_limit_exceeded errors.
+const GROQ_MAX_TOKENS = process.env.GROQ_MAX_TOKENS ? parseInt(process.env.GROQ_MAX_TOKENS, 10) : 800;
+// Dedicated fast, lightweight non-reasoning model for quick moderation without <think> tags or high token usage.
+const GROQ_MODERATION_MODEL = process.env.GROQ_MODERATION_MODEL || 'llama-3.1-8b-instant';
 
 /**
  * Stream a response from Groq.
@@ -12,30 +17,37 @@ const GROQ_MODEL = process.env.GROQ_MODEL || 'qwen/qwen3.6-27b';
  * @param {Function} onChunk - Callback for each text chunk
  */
 export async function streamGroqResponse(messages, onChunk) {
-  const stream = await client.chat.completions.create({
-    model: GROQ_MODEL,
-    messages,
-    stream: true,
-    temperature: 0.7,
-    max_tokens: 2048,
-  });
+  try {
+    const stream = await client.chat.completions.create({
+      model: GROQ_MODEL,
+      messages,
+      stream: true,
+      temperature: 0.7,
+      max_tokens: GROQ_MAX_TOKENS,
+    });
 
-  for await (const chunk of stream) {
-    const content = chunk.choices[0]?.delta?.content || '';
-    if (content) onChunk(content);
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || '';
+      if (content) onChunk(content);
+    }
+  } catch (err) {
+    if (err.status === 429 || err.message?.includes('rate_limit_exceeded') || err.message?.includes('OTPM')) {
+      throw new Error(`Groq rate limit reached (1000 output tokens/min limit on ${GROQ_MODEL}). Please wait a minute or set GROQ_MAX_TOKENS to a lower value.`);
+    }
+    throw err;
   }
 }
 
 /**
  * Moderate a user message for spam, abuse, or harmful content.
- * Uses a fast small model to keep latency low.
+ * Uses a fast small model to keep latency low and avoid reasoning token overhead.
  * @param {string} text - The user message to check
  * @returns {{ flagged: boolean, reason: string }}
  */
 export async function moderateMessage(text) {
   try {
     const response = await client.chat.completions.create({
-      model: GROQ_MODEL, // fast model for moderation
+      model: GROQ_MODERATION_MODEL, // fast non-reasoning model for moderation
       messages: [
         {
           role: 'system',
@@ -60,20 +72,33 @@ Reply ONLY with the JSON. No explanation.`,
         },
       ],
       temperature: 0,
-      max_tokens: 60,
+      max_tokens: 100,
     });
 
-    const raw = response.choices[0]?.message?.content?.trim() || '{"flagged":false,"reason":""}';
-    // extract JSON even if model adds extra text
-    const match = raw.match(/\{.*\}/s);
-    const parsed = JSON.parse(match ? match[0] : raw);
+    const raw = response.choices[0]?.message?.content?.trim() || '';
+
+    // Strip out <think>...</think> blocks emitted by reasoning models
+    const cleaned = raw
+      .replace(/<think>[\s\S]*?<\/think>/gi, '')
+      .replace(/```json\s*|\s*```/gi, '')
+      .trim();
+
+    // Extract JSON object safely
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    const jsonStr = match ? match[0] : cleaned;
+
+    if (!jsonStr) {
+      return { flagged: false, reason: '' };
+    }
+
+    const parsed = JSON.parse(jsonStr);
     return {
       flagged: Boolean(parsed.flagged),
       reason: parsed.reason || '',
     };
   } catch (err) {
-    // if moderation fails, don't block the user — fail open
-    console.error('Moderation error:', err.message);
+    // if moderation fails, don't block the user — fail open silently
+    console.error('Moderation fallback (failed open):', err.message);
     return { flagged: false, reason: '' };
   }
 }

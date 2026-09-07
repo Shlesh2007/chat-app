@@ -24,6 +24,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust first proxy hop (Render / Vercel / Cloudflare / Nginx reverse proxy)
+app.set('trust proxy', 1);
+
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
   origin: (origin, cb) => cb(null, true), // allow all in production (Vercel + local)
